@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit Annual Self-Appraisal &bull; FacultyOS Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue">Annual Evaluation</span>
+                <span class="saas-badge saas-badge-neutral">Session {{ academic_year }}</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">Annual Faculty Self-Appraisal Submission</h1>
+            <p class="text-muted extra-small mb-0 mt-1">Review verified performance records across all 4 categories and submit your annual dossier</p>
+        </div>
+        <div>
+            <!-- Session Switcher -->
+            <form method="GET" class="d-flex align-items-center gap-1 bg-white p-1 rounded-2 border shadow-xs">
+                <label for="id_top_session_year" class="extra-small text-muted fw-semibold ps-2">Session:</label>
+                <select name="year" id="id_top_session_year" class="saas-select border-0 py-1 pe-3 fw-semibold text-primary" style="font-size: 0.8rem; width: auto;" onchange="this.form.submit()">
+                    {% for yr in available_years %}
+                        <option value="{{ yr }}" {% if yr == academic_year %}selected{% endif %}>Academic Session {{ yr }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Live Performance Score Banner -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-body p-4">
+            <div class="row align-items-center g-3">
+                <div class="col-md-7">
+                    <h2 class="h6 fw-bold text-dark mb-1">
+                        <i class="bi bi-calculator text-primary me-1"></i> PBAS 100-Point Score Accumulator
+                    </h2>
+                    <p class="text-muted extra-small mb-3">
+                        Computed in real-time from verified teaching logs, publications, workshops, and funded research grants.
+                    </p>
+                    <div class="row g-2 text-center">
+                        <div class="col-3">
+                            <div class="p-2 bg-light rounded-2 border">
+                                <div class="extra-small text-muted text-uppercase fw-semibold">Teaching</div>
+                                <div class="fw-bold text-dark fs-6">{{ score_breakdown.teaching_score }} <span class="text-muted extra-small">/ 40</span></div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-2 bg-light rounded-2 border">
+                                <div class="extra-small text-muted text-uppercase fw-semibold">Research</div>
+                                <div class="fw-bold text-dark fs-6">{{ score_breakdown.research_score }} <span class="text-muted extra-small">/ 30</span></div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-2 bg-light rounded-2 border">
+                                <div class="extra-small text-muted text-uppercase fw-semibold">Workshops</div>
+                                <div class="fw-bold text-dark fs-6">{{ score_breakdown.workshop_score }} <span class="text-muted extra-small">/ 15</span></div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-2 bg-light rounded-2 border">
+                                <div class="extra-small text-muted text-uppercase fw-semibold">Projects</div>
+                                <div class="fw-bold text-dark fs-6">{{ score_breakdown.project_score }} <span class="text-muted extra-small">/ 15</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5 text-md-end">
+                    <div class="d-inline-block p-3 bg-light rounded-2 border text-center">
+                        <div class="text-muted extra-small text-uppercase fw-semibold">Evaluated Score</div>
+                        <div class="display-6 fw-bold text-primary mb-1">{{ score_breakdown.total_score }} <span class="fs-6 text-muted">/ 100</span></div>
+                        <span class="score-badge score-badge-verygood">{{ score_breakdown.performance_grade }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auditable Dossier Portfolio Overview -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-header">
+            <div class="saas-card-title">
+                <i class="bi bi-card-checklist"></i> Session {{ academic_year }} Verified Portfolio Details
+            </div>
+            <span class="extra-small text-muted">Itemized Records</span>
+        </div>
+        <div class="saas-card-body p-4">
+            <!-- 1. Teaching -->
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="h6 fw-bold text-dark mb-0">
+                        <i class="bi bi-journal-text text-primary me-1"></i> 1. Teaching Records ({{ teaching_records.count }})
+                    </h3>
+                    <a href="{% url 'teaching_list' %}" class="extra-small text-primary fw-semibold">Manage Teaching</a>
+                </div>
+                {% if teaching_records %}
+                    <div class="table-responsive">
+                        <table class="saas-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject Code &amp; Title</th>
+                                    <th>Sem</th>
+                                    <th>Hours (Cond/Sched)</th>
+                                    <th>Compliance</th>
+                                    <th>Pass %</th>
+                                    <th>Student Feedback</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in teaching_records %}
+                                    <tr>
+                                        <td><strong>{{ t.subject_code }}</strong> &bull; {{ t.subject_name }}</td>
+                                        <td>{{ t.semester }}</td>
+                                        <td>{{ t.conducted_hours }} / {{ t.scheduled_hours }} hrs</td>
+                                        <td><span class="saas-badge saas-badge-green">{{ t.compliance_rate }}%</span></td>
+                                        <td>{{ t.pass_percentage }}%</td>
+                                        <td><i class="bi bi-star-fill text-warning"></i> {{ t.student_feedback_score }} / 5.0</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="p-2 bg-light rounded-2 border extra-small text-muted">
+                        <i class="bi bi-info-circle me-1"></i> No teaching records logged for this session. Teaching score will be 0.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- 2. Research -->
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="h6 fw-bold text-dark mb-0">
+                        <i class="bi bi-book text-success me-1"></i> 2. Research &amp; Publications ({{ research_records.count }})
+                    </h3>
+                    <a href="{% url 'research_list' %}" class="extra-small text-success fw-semibold">Manage Research</a>
+                </div>
+                {% if research_records %}
+                    <div class="table-responsive">
+                        <table class="saas-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Role</th>
+                                    <th>Venue</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in research_records %}
+                                    <tr>
+                                        <td><strong>{{ r.title }}</strong></td>
+                                        <td><span class="saas-badge saas-badge-blue">{{ r.get_publication_type_display }}</span></td>
+                                        <td>{{ r.author_role }}</td>
+                                        <td>{{ r.journal_conference_name }}</td>
+                                        <td>{{ r.publication_date|date:"M Y" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="p-2 bg-light rounded-2 border extra-small text-muted">
+                        <i class="bi bi-info-circle me-1"></i> No publications recorded for this session.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- 3. Workshops -->
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="h6 fw-bold text-dark mb-0">
+                        <i class="bi bi-award text-warning me-1"></i> 3. Workshops &amp; FDPs ({{ workshop_records.count }})
+                    </h3>
+                    <a href="{% url 'workshop_list' %}" class="extra-small text-warning fw-semibold">Manage Workshops</a>
+                </div>
+                {% if workshop_records %}
+                    <div class="table-responsive">
+                        <table class="saas-table">
+                            <thead>
+                                <tr>
+                                    <th>Program Title</th>
+                                    <th>Type</th>
+                                    <th>Role</th>
+                                    <th>Host Institution</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for w in workshop_records %}
+                                    <tr>
+                                        <td><strong>{{ w.title }}</strong></td>
+                                        <td><span class="saas-badge saas-badge-neutral">{{ w.get_program_type_display }}</span></td>
+                                        <td>{{ w.role }}</td>
+                                        <td>{{ w.organizing_institution }}</td>
+                                        <td>{{ w.duration_days }} Days</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="p-2 bg-light rounded-2 border extra-small text-muted">
+                        <i class="bi bi-info-circle me-1"></i> No training programs logged for this session.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- 4. Projects -->
+            <div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h3 class="h6 fw-bold text-dark mb-0">
+                        <i class="bi bi-diagram-3 me-1" style="color:var(--violet-600);"></i> 4. Sponsored Projects &amp; Grants ({{ project_records.count }})
+                    </h3>
+                    <a href="{% url 'project_list' %}" class="extra-small fw-semibold" style="color:var(--violet-600);">Manage Projects</a>
+                </div>
+                {% if project_records %}
+                    <div class="table-responsive">
+                        <table class="saas-table">
+                            <thead>
+                                <tr>
+                                    <th>Project Title</th>
+                                    <th>Agency</th>
+                                    <th>Sanctioned Grant</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in project_records %}
+                                    <tr>
+                                        <td><strong>{{ p.title }}</strong></td>
+                                        <td>{{ p.funding_agency }}</td>
+                                        <td class="text-success font-mono">₹ {{ p.grant_amount|floatformat:2 }}</td>
+                                        <td>{{ p.get_role_display }}</td>
+                                        <td><span class="saas-badge saas-badge-neutral">{{ p.status }}</span></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="p-2 bg-light rounded-2 border extra-small text-muted">
+                        <i class="bi bi-info-circle me-1"></i> No sponsored projects recorded for this session.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Self-Reflection & Final Submission Form -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-header">
+            <div class="saas-card-title">
+                <i class="bi bi-pencil-square"></i> Faculty Self-Assessment Remarks &amp; Certification
+            </div>
+            <span class="extra-small text-muted">Committee Audit</span>
+        </div>
+        <div class="saas-card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger py-2 px-3 extra-small rounded-2 mb-4" role="alert">
+                        <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Please correct the following errors:</div>
+                        <ul class="mb-0 ps-3">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <div class="mb-3 d-none">
+                    <label class="saas-form-label">Academic Year</label>
+                    {{ form.academic_year }}
+                </div>
+
+                <div class="mb-4">
+                    <label class="saas-form-label">Self-Appraisal Remarks &amp; Future Research/Pedagogy Goals <span class="text-danger">*</span></label>
+                    {{ form.faculty_remarks }}
+                    <div class="saas-form-helper">Highlight key pedagogical innovations, student mentorship initiatives, departmental responsibilities, and research roadmap.</div>
+                    {% if form.faculty_remarks.errors %}<div class="text-danger extra-small">{{ form.faculty_remarks.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="p-3 bg-light rounded-2 border mb-4">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" id="confirmAccuracy" required checked>
+                        <label class="form-check-label extra-small fw-semibold text-secondary" for="confirmAccuracy">
+                            I solemnly affirm that the records of teaching hours, research publications, training courses, and projects entered above are authentic and verifiable by the academic appraisal committee.
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top flex-wrap gap-2">
+                    <a href="{% url 'faculty_dashboard' %}" class="btn-saas btn-saas-secondary">
+                        <i class="bi bi-arrow-left"></i> Return to Dashboard
+                    </a>
+                    <button type="submit" class="btn-saas btn-saas-primary px-4 py-2">
+                        <i class="bi bi-send-check"></i> Confirm &amp; Submit Appraisal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

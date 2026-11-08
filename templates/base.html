@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FacultyOS &bull; Academic Performance &amp; CAS Portal{% endblock %}</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS (For Grid & Utility Architecture) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Institutional SaaS Command-Centre CSS (Phase 10) -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% if request.resolver_match.url_name == 'login' or request.resolver_match.url_name == 'register' %}auth-page{% endif %}">
+
+    <!-- COMMAND-CENTRE TOP APPLICATION HEADER -->
+    <header class="saas-navbar">
+        <div class="d-flex align-items-center gap-3 w-100 justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                {% if user.is_authenticated %}
+                <button class="btn btn-saas btn-saas-secondary btn-saas-sm d-lg-none" type="button" id="sidebarToggle" aria-label="Toggle Navigation">
+                    <i class="bi bi-list fs-6"></i>
+                </button>
+                {% endif %}
+
+                <a class="saas-brand" href="{% url 'home' %}">
+                    <div class="saas-brand-mark">
+                        <i class="bi bi-mortarboard-fill"></i>
+                    </div>
+                    <span>FacultyOS</span>
+                    <span class="saas-brand-tag d-none d-sm-inline">Institutional</span>
+                </a>
+
+                <!-- Contextual Academic Breadcrumb -->
+                {% if user.is_authenticated %}
+                <div class="d-none d-md-flex align-items-center gap-2 extra-small text-muted ms-2 ps-2 border-start">
+                    <span class="text-uppercase fw-semibold" style="letter-spacing: 0.04em;">
+                        {% if is_admin_user %}Admin Console{% else %}Faculty Workspace{% endif %}
+                    </span>
+                    <span>&bull;</span>
+                    <span class="text-dark fw-medium">
+                        {% if 'teaching' in request.path %}Teaching Records (Part A)
+                        {% elif 'research' in request.path %}Research Publications (Part B)
+                        {% elif 'workshops' in request.path %}Workshops &amp; FDPs (Part C)
+                        {% elif 'projects' in request.path %}Sponsored Projects (Part D)
+                        {% elif 'appraisal' in request.path %}Self-Appraisal &amp; CAS
+                        {% elif 'faculty' in request.path and is_admin_user %}Faculty Directory
+                        {% elif 'profile' in request.path %}Faculty Dossier
+                        {% else %}Overview{% endif %}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                {% if user.is_authenticated %}
+                    <div class="session-selector-pill d-none d-md-flex">
+                        <i class="bi bi-calendar3 text-muted"></i>
+                        <span class="text-muted">Session:</span>
+                        <strong>{{ current_academic_year }}</strong>
+                    </div>
+
+                    <!-- User Account Dropdown -->
+                    <div class="dropdown">
+                        <button class="user-profile-trigger dropdown-toggle" type="button" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="user-avatar-initials">
+                                {% if user.first_name %}{{ user.first_name|slice:":1" }}{% else %}{{ user.username|slice:":1"|upper }}{% endif %}
+                            </div>
+                            <span class="d-none d-sm-inline fw-semibold">
+                                {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
+                            </span>
+                            <span class="saas-badge {% if is_admin_user %}saas-badge-blue{% else %}saas-badge-green{% endif %} ms-1">
+                                {% if is_admin_user %}Admin{% else %}Faculty{% endif %}
+                            </span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border" aria-labelledby="userMenuDropdown" style="font-size: 0.82rem; min-width: 200px;">
+                            <li class="px-3 py-2 border-bottom bg-light">
+                                <div class="fw-bold text-dark">{{ user.get_full_name|default:user.username }}</div>
+                                <div class="text-muted extra-small">{{ user.email|default:"Academic Member" }}</div>
+                            </li>
+                            {% if not is_admin_user %}
+                                <li><a class="dropdown-item py-2" href="{% url 'faculty_profile' %}"><i class="bi bi-person me-2 text-muted"></i>Faculty Dossier</a></li>
+                                <li><a class="dropdown-item py-2" href="{% url 'faculty_dashboard' %}"><i class="bi bi-speedometer2 me-2 text-muted"></i>Faculty Workspace</a></li>
+                                <li><a class="dropdown-item py-2" href="{% url 'submit_appraisal' %}"><i class="bi bi-send-check me-2 text-muted"></i>Submit Appraisal</a></li>
+                            {% else %}
+                                <li><a class="dropdown-item py-2" href="{% url 'admin_dashboard' %}"><i class="bi bi-shield-check me-2 text-muted"></i>Executive Dashboard</a></li>
+                                <li><a class="dropdown-item py-2" href="{% url 'admin_faculty_list' %}"><i class="bi bi-people me-2 text-muted"></i>Faculty Directory</a></li>
+                                <li><a class="dropdown-item py-2" href="{% url 'admin_appraisals_list' %}"><i class="bi bi-check2-all me-2 text-muted"></i>Appraisal Reviews</a></li>
+                                <li><a class="dropdown-item py-2" href="/admin/" target="_blank"><i class="bi bi-sliders me-2 text-muted"></i>Django Administration</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item py-2" href="{% url 'change_password' %}"><i class="bi bi-key me-2 text-muted"></i>Account Security</a></li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item py-2 text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign In
+                    </a>
+                    <a href="{% url 'register' %}" class="btn-saas btn-saas-primary btn-saas-sm d-none d-sm-inline-flex">
+                        <i class="bi bi-person-plus"></i> Register
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- COMMAND-CENTRE WORKSPACE SHELL -->
+    <div class="app-layout">
+        {% if user.is_authenticated %}
+            <!-- DEEP INK INSTITUTIONAL SIDEBAR -->
+            <aside class="app-sidebar" id="appSidebar">
+                {% if is_admin_user %}
+                    <!-- ADMIN COMMAND NAVIGATION -->
+                    <div class="app-sidebar-section">
+                        <div class="app-sidebar-label">Institutional Overview</div>
+                        <ul class="app-sidebar-nav">
+                            <li class="app-sidebar-item">
+                                <a href="{% url 'admin_dashboard' %}" class="app-sidebar-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                                    <i class="bi bi-grid-1x2"></i> Executive Dashboard
+                                </a>
+                            </li>
+                            <li class="app-sidebar-item">
+                                <a href="{% url 'admin_faculty_list' %}" class="app-sidebar-link {% if 'faculty' in request.path and 'admin-portal' in request.path %}active{% endif %}">
+                                    <i class="bi bi-people"></i> Faculty Directory
+                                </a>
+                            </li>
+                            <li class="app-sidebar-item">
+                                <a href="{% url 'admin_appraisals_list' %}" class="app-sidebar-link {% if 'appraisals' in request.path and 'admin-portal' in request.path %}active{% endif %}">
+                                    <i class="bi bi-check2-circle"></i> Appraisal Reviews
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="app-sidebar-section">
+                        <div class="app-sidebar-label">Institutional Exports</div>
+                        <ul class="app-sidebar-nav">
+                            <li class="app-sidebar-item">
+                                <a href="{% url 'admin_export_faculty_csv' %}" class="app-sidebar-link">
+                                    <i class="bi bi-file-earmark-spreadsheet"></i> Faculty CSV
+                                </a>
+                            </li>
+                            <li class="app-sidebar-item">
+                                <a href="{% url 'admin_export_appraisals_csv' %}" class="app-sidebar-link">
+                                    <i class="bi bi-download"></i> Appraisal CSV
+                                </a>
+                            </li>
+                            <li class="app-sidebar-item">
+                                <a href="/admin/" target="_blank" class="app-sidebar-link">
+                                    <i class="bi bi-sliders"></i> Django Administration
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <!-- FACULTY WORKSPACE NAVIGATION -->
+                    <div class="app-sidebar-section">
+                        <div class="app-sidebar-label">Workspace</div>
+                        <ul class="app-sidebar-nav">
+                            <li class="app-sidebar-item">
+                                <a href="{% url 'faculty_dashboard' %}" class="app-sidebar-link {% if request.resolver_match.url_name == 'faculty_dashboard' %}active{% endif %}">
+                                    <i class="bi bi-speedometer2"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="app-sidebar-item">
+                                <a href="{% url 'faculty_profile' %}" class="app-sidebar-link {% if 'profile' in request.path %}active{% endif %}">
+                                    <i class="bi bi-person-badge"></i> Faculty Dossier
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="app-sidebar-section">
+                        <div class="app-sidebar-label">Performance Records</div>
+                        <ul class="app-sidebar-nav">
+                            <li class="app-sidebar-item">
+                                <a href="{% url 'teaching_list' %}" class="app-sidebar-link {% if 'teaching' in request.path %}active{% endif %}">
+                                    <i class="bi bi-journal-text"></i> Teaching Records (40)
+                                </a>
+                            </li>
+                            <li class="app-sidebar-item">
+                                <a href="{% url 'research_list' %}" class="app-sidebar-link {% if 'research' in request.path %}active{% endif %}">
+                                    <i class="bi bi-book"></i> Research Publications (30)
+                                </a>
+                            </li>
+                            <li class="app-sidebar-item">
+                                <a href="{% url 'workshop_list' %}" class="app-sidebar-link {% if 'workshops' in request.path %}active{% endif %}">
+                                    <i class="bi bi-award"></i> Workshops &amp; FDPs (15)
+                                </a>
+                            </li>
+                            <li class="app-sidebar-item">
+                                <a href="{% url 'project_list' %}" class="app-sidebar-link {% if 'projects' in request.path %}active{% endif %}">
+                                    <i class="bi bi-diagram-3"></i> Sponsored Projects (15)
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="app-sidebar-section">
+                        <div class="app-sidebar-label">Appraisal</div>
+                        <ul class="app-sidebar-nav">
+                            <li class="app-sidebar-item">
+                                <a href="{% url 'submit_appraisal' %}" class="app-sidebar-link {% if 'submit' in request.path %}active{% endif %}">
+                                    <i class="bi bi-send-check"></i> Submit Annual Appraisal
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <!-- COMMAND SIDEBAR FOOTER -->
+                <div class="app-sidebar-footer">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden">
+                            <div class="user-avatar-initials" style="width:30px;height:30px;font-size:0.75rem;">
+                                {% if user.first_name %}{{ user.first_name|slice:":1" }}{% else %}{{ user.username|slice:":1"|upper }}{% endif %}
+                            </div>
+                            <div class="overflow-hidden">
+                                <div class="text-truncate fw-semibold text-white small" style="max-width: 140px;">
+                                    {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
+                                </div>
+                                <div class="text-truncate extra-small" style="max-width: 140px; color: #8896A4;">
+                                    {% if user_faculty_profile %}{{ user_faculty_profile.employee_id }}{% else %}Administrator{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <a href="{% url 'logout' %}" class="btn-saas btn-saas-ghost btn-saas-sm text-danger p-1" title="Sign Out">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </aside>
+        {% endif %}
+
+        <!-- MAIN PAGE WORKSPACE -->
+        <main class="app-content">
+            <!-- Alert Messages -->
+            {% block messages %}
+            {% if messages %}
+                <div class="mb-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show saas-alert-dismissible py-2 px-3 small border d-flex align-items-center gap-2" role="alert">
+                            {% if message.tags == 'success' %}
+                                <i class="bi bi-check-circle-fill text-success fs-6"></i>
+                            {% elif message.tags == 'danger' or message.tags == 'error' %}
+                                <i class="bi bi-exclamation-triangle-fill text-danger fs-6"></i>
+                            {% elif message.tags == 'warning' %}
+                                <i class="bi bi-exclamation-circle-fill text-warning fs-6"></i>
+                            {% else %}
+                                <i class="bi bi-info-circle-fill text-primary fs-6"></i>
+                            {% endif %}
+                            <div>{{ message }}</div>
+                            <button type="button" class="btn-close p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% endblock messages %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <!-- Custom Portal Interaction Utilities -->
+    <script src="{% static 'js/portal.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} &bull; FacultyOS Platform{% endblock %}
+
+{% block content %}
+<div class="container py-3" style="max-width: 860px;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <div class="saas-badge saas-badge-blue mb-1">Teaching &bull; Up to 40 Pts</div>
+            <h1 class="h5 fw-bold mb-0">{{ title }}</h1>
+            <p class="text-muted extra-small mb-0">Record instructional hours, student results, and feedback ratings</p>
+        </div>
+        <a href="{% url 'teaching_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+            <i class="bi bi-arrow-left"></i> Back to Teaching List
+        </a>
+    </div>
+
+    <div class="saas-card">
+        <div class="saas-card-body p-4">
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger py-2 px-3 extra-small rounded-2 mb-4" role="alert">
+                        <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Please correct the following errors:</div>
+                        <ul class="mb-0 ps-3">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <!-- Course Identification -->
+                <div class="form-section-group">
+                    <div class="form-section-title"><i class="bi bi-journal-text text-primary me-1"></i> Course Identification</div>
+                    <div class="form-section-desc">Academic session, semester, course code, and title</div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Academic Year <span class="text-danger">*</span></label>
+                            {{ form.academic_year }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Semester <span class="text-danger">*</span></label>
+                            {{ form.semester }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="saas-form-label">Subject Code <span class="text-danger">*</span></label>
+                            {{ form.subject_code }}
+                        </div>
+                        <div class="col-md-5">
+                            <label class="saas-form-label">Subject Title <span class="text-danger">*</span></label>
+                            {{ form.subject_name }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="saas-form-label">Course Type <span class="text-danger">*</span></label>
+                            {{ form.course_type }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Metrics -->
+                <div class="form-section-group">
+                    <div class="form-section-title"><i class="bi bi-clock-history text-primary me-1"></i> Instructional Delivery &amp; Results</div>
+                    <div class="form-section-desc">Class hours compliance, student pass rates, and evaluation rating</div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Scheduled Hours <span class="text-danger">*</span></label>
+                            {{ form.scheduled_hours }}
+                            <div class="saas-form-helper">Total curriculum contact hours scheduled</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Conducted Hours <span class="text-danger">*</span></label>
+                            {{ form.conducted_hours }}
+                            <div class="saas-form-helper">Actual classes held (syllabus compliance)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Student Pass Percentage <span class="text-danger">*</span></label>
+                            {{ form.pass_percentage }}
+                            <div class="saas-form-helper">Pass rate (0.0 to 100.0%)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Student Feedback Rating <span class="text-danger">*</span></label>
+                            {{ form.student_feedback_score }}
+                            <div class="saas-form-helper">Evaluation rating (0.00 to 5.00)</div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="saas-form-label">Pedagogy Innovations &amp; ICT Tools</label>
+                            {{ form.innovative_teaching_methods }}
+                            <div class="saas-form-helper">Smart classrooms, simulation software, LMS modules used</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <a href="{% url 'teaching_list' %}" class="btn-saas btn-saas-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn-saas btn-saas-primary">
+                        <i class="bi bi-check2-circle"></i> Save Teaching Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

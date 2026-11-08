@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Appraisal Dossier &bull; Session {{ appraisal.academic_year }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue">Official Dossier</span>
+                <span class="saas-badge saas-badge-neutral">Session {{ appraisal.academic_year }}</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">Faculty Performance Appraisal Dossier</h1>
+            <p class="text-muted extra-small mb-0 mt-1">
+                Candidate: <strong class="text-dark">{{ appraisal.faculty.employee_id }}</strong> &bull;
+                {{ appraisal.faculty.user.get_full_name|default:appraisal.faculty.user.username }} ({{ appraisal.faculty.get_department_display }})
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'download_appraisal_pdf' appraisal.pk %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                <i class="bi bi-file-earmark-pdf"></i> Download Certified PDF
+            </a>
+            <a href="{% url 'faculty_dashboard' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                <i class="bi bi-arrow-left"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Status & Score Overview Banner -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-body p-4">
+            <div class="row align-items-center g-3">
+                <div class="col-md-7">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="fw-bold text-dark">Appraisal Status:</span>
+                        {% if appraisal.status == 'APPROVED' %}
+                            <span class="saas-badge saas-badge-green"><i class="bi bi-check-circle-fill"></i> Approved</span>
+                        {% elif appraisal.status == 'REJECTED' %}
+                            <span class="saas-badge saas-badge-rose"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                        {% elif appraisal.status == 'REVISION_REQUESTED' %}
+                            <span class="saas-badge saas-badge-amber"><i class="bi bi-arrow-repeat"></i> Revision Requested</span>
+                        {% else %}
+                            <span class="saas-badge saas-badge-blue"><i class="bi bi-hourglass-split"></i> {{ appraisal.get_status_display }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-muted extra-small mb-0">
+                        Submitted: <strong>{{ appraisal.submission_date|date:"F d, Y - h:i A" }}</strong><br/>
+                        {% if appraisal.reviewed_at %}
+                            Evaluated: <strong>{{ appraisal.reviewed_at|date:"F d, Y - h:i A" }}</strong> by <strong>{{ appraisal.reviewed_by.get_full_name|default:appraisal.reviewed_by.username }}</strong>
+                        {% else %}
+                            Committee Evaluation: <em>Pending Administrative Review</em>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-5 text-md-end">
+                    <div class="d-inline-block text-center p-3 bg-light rounded-2 border">
+                        <div class="text-muted extra-small text-uppercase fw-semibold">Performance Score</div>
+                        <div class="display-6 fw-bold text-primary mb-1">{{ appraisal.total_score }} <span class="fs-6 text-muted">/ 100</span></div>
+                        <span class="score-badge score-badge-verygood">{{ appraisal.performance_grade }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Score breakdown cards -->
+            <div class="row text-center g-2 mt-3 pt-3 border-top">
+                <div class="col-6 col-md-3">
+                    <div class="p-2 bg-light rounded-2 border">
+                        <div class="text-muted extra-small text-uppercase fw-semibold">1. Teaching (40)</div>
+                        <div class="fw-bold text-dark fs-6">{{ appraisal.teaching_score }} pts</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-2 bg-light rounded-2 border">
+                        <div class="text-muted extra-small text-uppercase fw-semibold">2. Research (30)</div>
+                        <div class="fw-bold text-dark fs-6">{{ appraisal.research_score }} pts</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-2 bg-light rounded-2 border">
+                        <div class="text-muted extra-small text-uppercase fw-semibold">3. Workshops (15)</div>
+                        <div class="fw-bold text-dark fs-6">{{ appraisal.workshop_score }} pts</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-2 bg-light rounded-2 border">
+                        <div class="text-muted extra-small text-uppercase fw-semibold">4. Projects (15)</div>
+                        <div class="fw-bold text-dark fs-6">{{ appraisal.project_score }} pts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviewer Remarks & Self Assessment -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="saas-card h-100 mb-0">
+                <div class="saas-card-header">
+                    <div class="saas-card-title"><i class="bi bi-person-lines-fill"></i> Faculty Self-Assessment Remarks</div>
+                </div>
+                <div class="saas-card-body">
+                    <p class="text-secondary extra-small mb-0" style="white-space: pre-line;">
+                        {{ appraisal.faculty_remarks|default:"No self-assessment remarks provided." }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="saas-card h-100 mb-0">
+                <div class="saas-card-header">
+                    <div class="saas-card-title"><i class="bi bi-chat-square-quote"></i> Evaluation Committee Remarks</div>
+                </div>
+                <div class="saas-card-body">
+                    {% if appraisal.admin_remarks %}
+                        <p class="text-secondary extra-small mb-0" style="white-space: pre-line;">
+                            {{ appraisal.admin_remarks }}
+                        </p>
+                    {% else %}
+                        <p class="text-muted extra-small fst-italic mb-0">
+                            No committee feedback recorded yet. Awaiting administrative review.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Appraisal &bull; {{ profile.employee_id }} ({{ appraisal.academic_year }}){% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue">Committee Audit</span>
+                <span class="saas-badge saas-badge-neutral font-mono">{{ profile.employee_id }}</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">Appraisal Evaluation &amp; CAS Decision</h1>
+            <p class="text-muted extra-small mb-0 mt-1">
+                Candidate: <strong class="text-dark">{{ profile.user.get_full_name|default:profile.user.username }}</strong>
+                &bull; Department of {{ profile.get_department_display }} &bull; Session {{ appraisal.academic_year }}
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_download_pdf' appraisal.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                <i class="bi bi-file-earmark-pdf text-danger"></i> Download PDF Dossier
+            </a>
+            <a href="{% url 'admin_appraisals_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                <i class="bi bi-arrow-left"></i> Back to Review Queue
+            </a>
+        </div>
+    </div>
+
+    <!-- Candidate Profile & Score Summary Card -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-body p-4">
+            <div class="row align-items-center g-3">
+                <div class="col-md-7">
+                    <div class="row g-2 extra-small mb-3">
+                        <div class="col-sm-6">
+                            <span class="text-muted">Current Designation:</span>
+                            <strong class="text-dark">{{ profile.designation }}</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted">Highest Qualification:</span>
+                            <strong class="text-dark">{{ profile.highest_qualification }}</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted">Research Domain:</span>
+                            <strong class="text-dark">{{ profile.specialization }}</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted">Teaching Experience:</span>
+                            <strong class="text-dark">{{ profile.experience_years }} Years</strong>
+                        </div>
+                    </div>
+
+                    <!-- 4 Category Score Pills -->
+                    <div class="row g-2 text-center">
+                        <div class="col-3">
+                            <div class="p-2 bg-light rounded-2 border">
+                                <div class="extra-small text-muted text-uppercase fw-semibold">1. Teaching</div>
+                                <div class="fw-bold text-dark fs-6">{{ appraisal.teaching_score }} <span class="extra-small text-muted">/ 40</span></div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-2 bg-light rounded-2 border">
+                                <div class="extra-small text-muted text-uppercase fw-semibold">2. Research</div>
+                                <div class="fw-bold text-dark fs-6">{{ appraisal.research_score }} <span class="extra-small text-muted">/ 30</span></div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-2 bg-light rounded-2 border">
+                                <div class="extra-small text-muted text-uppercase fw-semibold">3. Workshops</div>
+                                <div class="fw-bold text-dark fs-6">{{ appraisal.workshop_score }} <span class="extra-small text-muted">/ 15</span></div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-2 bg-light rounded-2 border">
+                                <div class="extra-small text-muted text-uppercase fw-semibold">4. Projects</div>
+                                <div class="fw-bold text-dark fs-6">{{ appraisal.project_score }} <span class="extra-small text-muted">/ 15</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5 text-md-end border-start ps-md-4">
+                    <div class="d-inline-block p-3 bg-light rounded-2 border text-center">
+                        <div class="extra-small text-muted text-uppercase fw-semibold">Evaluated Score</div>
+                        <div class="display-6 fw-bold text-primary mb-1">{{ appraisal.total_score }} <span class="fs-6 text-muted">/ 100</span></div>
+                        <span class="score-badge score-badge-verygood">{{ appraisal.performance_grade }}</span>
+                        <div class="extra-small text-muted mt-2">
+                            Submitted: {{ appraisal.submission_date|date:"d M Y" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidate Self-Remarks -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-header">
+            <div class="saas-card-title"><i class="bi bi-chat-left-quote"></i> Faculty Self-Appraisal Remarks</div>
+        </div>
+        <div class="saas-card-body">
+            <p class="text-secondary extra-small mb-0" style="white-space: pre-line;">
+                {{ appraisal.faculty_remarks|default:"No faculty self-remarks provided." }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Administrative Review & CAS Decision Form -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-header">
+            <div class="saas-card-title">
+                <i class="bi bi-clipboard-check"></i> Committee Decision &amp; Feedback
+            </div>
+            <span class="extra-small text-muted">Official Audit Record</span>
+        </div>
+        <div class="saas-card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger py-2 px-3 extra-small rounded-2 mb-4" role="alert">
+                        <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Please correct the following errors:</div>
+                        <ul class="mb-0 ps-3">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="saas-form-label">Review Decision Status <span class="text-danger">*</span></label>
+                        {{ form.status }}
+                        <div class="saas-form-helper">Approve, Reject, or Request Revision from faculty member</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="saas-form-label">CAS Promotion Recommendation <span class="text-danger">*</span></label>
+                        {{ form.promotion_recommendation }}
+                        <div class="saas-form-helper">Official committee recommendation regarding Career Advancement</div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="saas-form-label">Committee Remarks &amp; Evaluator Feedback <span class="text-danger">*</span></label>
+                        {{ form.admin_remarks }}
+                        <div class="saas-form-helper">Provide transparent reasoning, notes for revision, or commendations</div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <a href="{% url 'admin_appraisals_list' %}" class="btn-saas btn-saas-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn-saas btn-saas-primary px-4 py-2">
+                        <i class="bi bi-check2-circle"></i> Submit Official Decision
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

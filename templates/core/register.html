@@ -1,0 +1,732 @@
+{% extends 'base.html' %}
+
+{% block title %}Faculty Registration &bull; FacultyOS Platform{% endblock %}
+
+{% block content %}
+<div class="auth-split-wrapper py-3 py-lg-4">
+    <div class="reg-split-card">
+        <!-- ========================================================= -->
+        <!-- LEFT PANEL: Institutional Registration Context            -->
+        <!-- ========================================================= -->
+        <div class="reg-split-left">
+            <div>
+                <div class="auth-brand-badge mb-3">
+                    <i class="bi bi-mortarboard-fill"></i> FacultyOS Institutional
+                </div>
+
+                <h2 class="auth-brand-heading mb-2">Join the Faculty Network</h2>
+
+                <p class="auth-brand-desc mb-4">
+                    Create your verified institutional profile to maintain instructional records, submit annual performance appraisals, and track Career Advancement Scheme (CAS) eligibility.
+                </p>
+
+                <!-- 3-Step Wizard Roadmap Overview -->
+                <div class="auth-pillar-list">
+                    <div class="auth-pillar-item">
+                        <div class="auth-pillar-icon font-mono fw-bold" style="font-size: 0.75rem;">01</div>
+                        <div>
+                            <div class="auth-pillar-title">Personal Identity &amp; Account</div>
+                            <div class="auth-pillar-sub">Official name, verified email, and unique portal username.</div>
+                        </div>
+                    </div>
+                    <div class="auth-pillar-item">
+                        <div class="auth-pillar-icon font-mono fw-bold" style="font-size: 0.75rem;">02</div>
+                        <div>
+                            <div class="auth-pillar-title">Academic &amp; Institutional Profile</div>
+                            <div class="auth-pillar-sub">Employee ID, department, designation, and qualification.</div>
+                        </div>
+                    </div>
+                    <div class="auth-pillar-item">
+                        <div class="auth-pillar-icon font-mono fw-bold" style="font-size: 0.75rem;">03</div>
+                        <div>
+                            <div class="auth-pillar-title">Security &amp; Final Review</div>
+                            <div class="auth-pillar-sub">Password configuration, policy compliance, and dossier review.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-top border-white-50">
+                <div class="text-white-50 extra-small mb-1">Already registered with FacultyOS?</div>
+                <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm w-100 py-1.5 fw-medium" style="font-size: 0.8rem;">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Existing Account
+                </a>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- RIGHT PANEL: Existing 3-Step Wizard Architecture          -->
+        <!-- ========================================================= -->
+        <div class="reg-split-right">
+            <!-- Header bar with step counter -->
+            <div class="pb-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                        <span class="badge bg-light text-secondary border">Onboarding Portal</span>
+                        <span class="badge bg-light text-dark border font-mono" id="stepCounterBadge">
+                            Step <span id="currentStepBadge">1</span> of 3
+                        </span>
+                    </div>
+                    <h1 class="h6 fw-bold mb-0 text-dark" style="font-size: 1.15rem;">Faculty Account Registration</h1>
+                </div>
+            </div>
+
+            <!-- Animated 3-Step Progress Indicator -->
+            <div class="wizard-stepper-container mb-3">
+                <div class="wizard-progress-track">
+                    <div class="wizard-progress-bar" id="wizardProgressBar" style="width: 0%;"></div>
+                </div>
+
+                <div class="wizard-stepper-nodes">
+                    <div class="wizard-step-node active" id="stepNode1" onclick="navigateToStep(1)">
+                        <div class="wizard-step-badge" id="stepBadge1">1</div>
+                        <div class="wizard-step-label">Personal Identity</div>
+                        <div class="wizard-step-sublabel">Name &amp; Account</div>
+                    </div>
+
+                    <div class="wizard-step-node" id="stepNode2" onclick="navigateToStep(2)">
+                        <div class="wizard-step-badge" id="stepBadge2">2</div>
+                        <div class="wizard-step-label">Academic Profile</div>
+                        <div class="wizard-step-sublabel">Credentials</div>
+                    </div>
+
+                    <div class="wizard-step-node" id="stepNode3" onclick="navigateToStep(3)">
+                        <div class="wizard-step-badge" id="stepBadge3">3</div>
+                        <div class="wizard-step-label">Security &amp; Review</div>
+                        <div class="wizard-step-sublabel">Password &amp; Verify</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server Error Alert -->
+            {% if form.errors %}
+                <div class="alert alert-danger py-2 px-3 extra-small rounded-2 mb-3 border-0 shadow-sm" role="alert" id="serverErrorAlert">
+                    <div class="fw-bold mb-1 d-flex align-items-center gap-1.5">
+                        <i class="bi bi-exclamation-triangle-fill text-danger fs-6"></i>
+                        <span>Please correct the following issues to complete registration:</span>
+                    </div>
+                    <ul class="mb-0 ps-3 mt-1">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{% if field != '__all__' %}<strong>{{ field|title }}:</strong> {% endif %}{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <!-- Client Validation Alert -->
+            <div id="clientValidationAlert" class="alert alert-warning py-2 px-3 extra-small rounded-2 mb-3 d-none border-0 shadow-sm">
+                <i class="bi bi-exclamation-circle-fill text-warning fs-6 me-1.5"></i>
+                <span id="clientValidationMsg">Please complete all required fields to proceed.</span>
+            </div>
+
+            <form method="POST" id="registrationForm" novalidate>
+                {% csrf_token %}
+
+                <!-- ===================================================== -->
+                <!-- STEP 1: Personal Identity                             -->
+                <!-- ===================================================== -->
+                <div class="wizard-pane active" id="step1Pane">
+                    <div class="d-flex align-items-center gap-2 mb-2 pb-1.5 border-bottom">
+                        <div class="saas-badge p-1.5 rounded-circle" style="background:#EAF1FF;color:#1E3A8A;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-person-badge fs-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="h6 fw-bold mb-0" style="font-size: 0.95rem;">Personal &amp; Account Identity</h3>
+                            <div class="text-muted extra-small">Basic identity information for official university records.</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2.5 mb-3">
+                        <div class="col-md-6">
+                            <label for="id_first_name" class="saas-form-label">First Name <span class="text-danger">*</span></label>
+                            <div class="reg-input-wrap">
+                                <span class="reg-input-icon"><i class="bi bi-person"></i></span>
+                                {{ form.first_name }}
+                            </div>
+                            {% if form.first_name.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_last_name" class="saas-form-label">Last Name <span class="text-danger">*</span></label>
+                            <div class="reg-input-wrap">
+                                <span class="reg-input-icon"><i class="bi bi-person"></i></span>
+                                {{ form.last_name }}
+                            </div>
+                            {% if form.last_name.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_username" class="saas-form-label">Username / Portal ID <span class="text-danger">*</span></label>
+                            <div class="reg-input-wrap">
+                                <span class="reg-input-icon"><i class="bi bi-at"></i></span>
+                                {{ form.username }}
+                            </div>
+                            <div class="saas-form-helper">Unique institutional handle for system authentication</div>
+                            {% if form.username.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_email" class="saas-form-label">Official University Email <span class="text-danger">*</span></label>
+                            <div class="reg-input-wrap">
+                                <span class="reg-input-icon"><i class="bi bi-envelope"></i></span>
+                                {{ form.email }}
+                            </div>
+                            <div class="saas-form-helper">Primary email for official appraisal notifications</div>
+                            {% if form.email.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Step 1 Navigation Buttons -->
+                    <div class="d-flex justify-content-between align-items-center pt-2.5 border-top">
+                        <a href="{% url 'login' %}" class="btn-saas btn-saas-secondary">
+                            <i class="bi bi-arrow-left"></i> Return to Login
+                        </a>
+                        <button type="button" class="btn-saas btn-saas-primary" onclick="validateAndGoToStep(2)">
+                            Continue to Academic Profile <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ===================================================== -->
+                <!-- STEP 2: Academic Profile                              -->
+                <!-- ===================================================== -->
+                <div class="wizard-pane d-none" id="step2Pane">
+                    <div class="d-flex align-items-center gap-2 mb-2 pb-1.5 border-bottom">
+                        <div class="saas-badge p-1.5 rounded-circle" style="background:#EAF1FF;color:#1E3A8A;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-briefcase fs-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="h6 fw-bold mb-0" style="font-size: 0.95rem;">Academic Profile &amp; Departmental Placement</h3>
+                            <div class="text-muted extra-small">Faculty designation, department appointment, and qualifications.</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2.5 mb-3">
+                        <div class="col-md-6">
+                            <label for="id_employee_id" class="saas-form-label">Employee ID <span class="text-danger">*</span></label>
+                            <div class="reg-input-wrap">
+                                <span class="reg-input-icon"><i class="bi bi-card-text"></i></span>
+                                {{ form.employee_id }}
+                            </div>
+                            {% if form.employee_id.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.employee_id.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_department" class="saas-form-label">Department <span class="text-danger">*</span></label>
+                            <div class="reg-input-wrap">
+                                <span class="reg-input-icon"><i class="bi bi-building"></i></span>
+                                {{ form.department }}
+                            </div>
+                            {% if form.department.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.department.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_designation" class="saas-form-label">Current Designation <span class="text-danger">*</span></label>
+                            <div class="reg-input-wrap">
+                                <span class="reg-input-icon"><i class="bi bi-award"></i></span>
+                                {{ form.designation }}
+                            </div>
+                            {% if form.designation.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.designation.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_highest_qualification" class="saas-form-label">Highest Academic Degree <span class="text-danger">*</span></label>
+                            <div class="reg-input-wrap">
+                                <span class="reg-input-icon"><i class="bi bi-mortarboard"></i></span>
+                                {{ form.highest_qualification }}
+                            </div>
+                            {% if form.highest_qualification.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.highest_qualification.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_specialization" class="saas-form-label">Domain Specialization <span class="text-danger">*</span></label>
+                            <div class="reg-input-wrap">
+                                <span class="reg-input-icon"><i class="bi bi-bookmark-star"></i></span>
+                                {{ form.specialization }}
+                            </div>
+                            {% if form.specialization.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.specialization.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_date_of_joining" class="saas-form-label">Date of Joining Institution</label>
+                            <div class="reg-input-wrap">
+                                <span class="reg-input-icon"><i class="bi bi-calendar-event"></i></span>
+                                {{ form.date_of_joining }}
+                            </div>
+                            {% if form.date_of_joining.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.date_of_joining.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_experience_years" class="saas-form-label">Teaching Experience (Years)</label>
+                            <div class="reg-input-wrap">
+                                <span class="reg-input-icon"><i class="bi bi-clock-history"></i></span>
+                                {{ form.experience_years }}
+                            </div>
+                            {% if form.experience_years.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.experience_years.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="id_contact_number" class="saas-form-label">Official Phone / Mobile</label>
+                            <div class="reg-input-wrap">
+                                <span class="reg-input-icon"><i class="bi bi-telephone"></i></span>
+                                {{ form.contact_number }}
+                            </div>
+                            {% if form.contact_number.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.contact_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Step 2 Navigation Buttons -->
+                    <div class="d-flex justify-content-between align-items-center pt-2.5 border-top">
+                        <button type="button" class="btn-saas btn-saas-secondary" onclick="navigateToStep(1)">
+                            <i class="bi bi-arrow-left"></i> Back to Personal Identity
+                        </button>
+                        <button type="button" class="btn-saas btn-saas-primary" onclick="validateAndGoToStep(3)">
+                            Continue to Security &amp; Review <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ===================================================== -->
+                <!-- STEP 3: Security & Review Summary                     -->
+                <!-- ===================================================== -->
+                <div class="wizard-pane d-none" id="step3Pane">
+                    <div class="d-flex align-items-center gap-2 mb-2 pb-1.5 border-bottom">
+                        <div class="saas-badge p-1.5 rounded-circle" style="background:#EAF1FF;color:#1E3A8A;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-shield-lock fs-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="h6 fw-bold mb-0" style="font-size: 0.95rem;">Security Credentials &amp; Verification Summary</h3>
+                            <div class="text-muted extra-small">Configure account password and review submitted details before finalizing.</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2.5 mb-3">
+                        <!-- Password Field with Live Strength Meter -->
+                        <div class="col-md-6">
+                            <label for="id_reg_password" class="saas-form-label">Account Password <span class="text-danger">*</span></label>
+                            <div class="reg-input-wrap has-password-toggle">
+                                <span class="reg-input-icon"><i class="bi bi-lock"></i></span>
+                                {{ form.password }}
+                                <button type="button" class="auth-password-toggle" id="toggleRegPwdBtn" aria-label="Toggle password visibility">
+                                    <i class="bi bi-eye" id="toggleRegPwdIcon"></i>
+                                </button>
+                            </div>
+
+                            <!-- Live Password Strength Meter -->
+                            <div class="mt-2">
+                                <div class="d-flex justify-content-between extra-small mb-1">
+                                    <span class="text-muted">Password Strength:</span>
+                                    <span id="strengthLabel" class="fw-bold text-muted">Enter password</span>
+                                </div>
+                                <div class="strength-bar-track">
+                                    <div class="strength-bar-fill" id="strengthBar"></div>
+                                </div>
+                            </div>
+
+                            <!-- Live Password Rule Checklist -->
+                            <div class="mt-2 p-2 bg-light rounded-2 border" id="pwdChecklist" style="font-size: 0.74rem;">
+                                <div class="pwd-rule-item" id="ruleLength"><i class="bi bi-circle"></i> Minimum 8 characters</div>
+                                <div class="pwd-rule-item" id="ruleMixed"><i class="bi bi-circle"></i> Contains letters and numbers</div>
+                                <div class="pwd-rule-item" id="ruleNotNumeric"><i class="bi bi-circle"></i> Cannot be entirely numeric</div>
+                                <div class="pwd-rule-item" id="ruleNotSimilar"><i class="bi bi-circle"></i> Cannot match username or email</div>
+                            </div>
+
+                            {% if form.password.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.password.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Confirm Password Field -->
+                        <div class="col-md-6">
+                            <label for="id_reg_confirm_password" class="saas-form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <div class="reg-input-wrap has-password-toggle">
+                                <span class="reg-input-icon"><i class="bi bi-lock-fill"></i></span>
+                                {{ form.confirm_password }}
+                                <button type="button" class="auth-password-toggle" id="toggleConfirmPwdBtn" aria-label="Toggle password visibility">
+                                    <i class="bi bi-eye" id="toggleConfirmPwdIcon"></i>
+                                </button>
+                            </div>
+
+                            <div id="matchFeedback" class="extra-small mt-2 p-2 bg-light rounded-2 border text-muted" style="font-size: 0.74rem;">
+                                <i class="bi bi-dash-circle me-1"></i> Passwords must match exactly.
+                            </div>
+
+                            {% if form.confirm_password.errors %}
+                                <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.confirm_password.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Live Profile Review Summary Box -->
+                    <div class="p-2.5 bg-light rounded-2 border mb-3">
+                        <div class="fw-semibold text-dark extra-small mb-1.5 d-flex align-items-center gap-1">
+                            <i class="bi bi-person-check-fill text-primary"></i> Registration Dossier Summary
+                        </div>
+                        <div class="row g-1.5 extra-small">
+                            <div class="col-6 col-md-3">
+                                <span class="text-muted">Full Name:</span> <strong id="reviewFullName" class="text-dark">&mdash;</strong>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <span class="text-muted">Username:</span> <strong id="reviewUsername" class="text-dark font-mono">&mdash;</strong>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <span class="text-muted">Email:</span> <strong id="reviewEmail" class="text-dark">&mdash;</strong>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <span class="text-muted">Employee ID:</span> <strong id="reviewEmpId" class="text-dark font-mono">&mdash;</strong>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <span class="text-muted">Department:</span> <strong id="reviewDept" class="text-dark">&mdash;</strong>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <span class="text-muted">Designation:</span> <strong id="reviewDesig" class="text-dark">&mdash;</strong>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <span class="text-muted">Qualification:</span> <strong id="reviewQual" class="text-dark">&mdash;</strong>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <span class="text-muted">Specialization:</span> <strong id="reviewSpec" class="text-dark">&mdash;</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 Navigation Buttons -->
+                    <div class="d-flex justify-content-between align-items-center pt-2.5 border-top">
+                        <button type="button" class="btn-saas btn-saas-secondary" onclick="navigateToStep(2)">
+                            <i class="bi bi-arrow-left"></i> Back to Academic Profile
+                        </button>
+                        <button type="submit" class="btn-saas btn-saas-primary" id="submitRegBtn">
+                            <span class="btn-spinner d-none" id="regSpinner"></span>
+                            <span id="regBtnText">Complete Registration</span>
+                            <i class="bi bi-check-circle ms-1" id="regBtnIcon"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 1;
+    let maxCompletedStep = 1;
+
+    function navigateToStep(targetStep) {
+        if (targetStep <= maxCompletedStep || targetStep === currentStep) {
+            showStep(targetStep);
+        } else if (targetStep === currentStep + 1) {
+            validateAndGoToStep(targetStep);
+        }
+    }
+
+    function showStep(step) {
+        currentStep = step;
+
+        document.querySelectorAll('.wizard-pane').forEach(el => el.classList.add('d-none'));
+        const activePane = document.getElementById(`step${step}Pane`);
+        if (activePane) activePane.classList.remove('d-none');
+
+        const badgeCounter = document.getElementById('currentStepBadge');
+        if (badgeCounter) badgeCounter.textContent = step;
+
+        const progressBar = document.getElementById('wizardProgressBar');
+        if (progressBar) {
+            progressBar.style.width = step === 1 ? '0%' : step === 2 ? '50%' : '100%';
+        }
+
+        for (let i = 1; i <= 3; i++) {
+            const node = document.getElementById(`stepNode${i}`);
+            const badge = document.getElementById(`stepBadge${i}`);
+            if (!node || !badge) continue;
+
+            if (i < step) {
+                node.classList.remove('active');
+                node.classList.add('completed');
+                badge.innerHTML = '<i class="bi bi-check-lg"></i>';
+            } else if (i === step) {
+                node.classList.add('active');
+                node.classList.remove('completed');
+                badge.textContent = i;
+            } else {
+                node.classList.remove('active');
+                node.classList.remove('completed');
+                badge.textContent = i;
+            }
+        }
+
+        const alertBox = document.getElementById('clientValidationAlert');
+        if (alertBox) alertBox.classList.add('d-none');
+
+        if (step === 3) updateReviewSummary();
+    }
+
+    function validateAndGoToStep(targetStep) {
+        const alertBox = document.getElementById('clientValidationAlert');
+        const alertMsg = document.getElementById('clientValidationMsg');
+
+        if (targetStep === 2) {
+            const firstName = document.getElementById('id_first_name')?.value.trim();
+            const lastName = document.getElementById('id_last_name')?.value.trim();
+            const username = document.getElementById('id_username')?.value.trim();
+            const email = document.getElementById('id_email')?.value.trim();
+
+            if (!firstName || !lastName || !username || !email) {
+                alertMsg.textContent = 'Please complete all required fields (First Name, Last Name, Username, Email) to continue.';
+                alertBox.classList.remove('d-none');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alertMsg.textContent = 'Please enter a valid university email address.';
+                alertBox.classList.remove('d-none');
+                return;
+            }
+
+            maxCompletedStep = Math.max(maxCompletedStep, 1);
+            showStep(2);
+        } else if (targetStep === 3) {
+            const empId = document.getElementById('id_employee_id')?.value.trim();
+            const dept = document.getElementById('id_department')?.value.trim();
+            const desig = document.getElementById('id_designation')?.value.trim();
+            const qual = document.getElementById('id_highest_qualification')?.value.trim();
+            const spec = document.getElementById('id_specialization')?.value.trim();
+
+            if (!empId || !dept || !desig || !qual || !spec) {
+                alertMsg.textContent = 'Please complete all required fields (Employee ID, Department, Designation, Qualification, Specialization) to continue.';
+                alertBox.classList.remove('d-none');
+                return;
+            }
+
+            maxCompletedStep = Math.max(maxCompletedStep, 2);
+            showStep(3);
+        }
+    }
+
+    function updateReviewSummary() {
+        const fn = document.getElementById('id_first_name')?.value.trim() || '';
+        const ln = document.getElementById('id_last_name')?.value.trim() || '';
+        const un = document.getElementById('id_username')?.value.trim() || '';
+        const em = document.getElementById('id_email')?.value.trim() || '';
+        const emp = document.getElementById('id_employee_id')?.value.trim() || '';
+        const spec = document.getElementById('id_specialization')?.value.trim() || '';
+
+        const deptSelect = document.getElementById('id_department');
+        const deptText = deptSelect ? deptSelect.options[deptSelect.selectedIndex]?.text : '';
+
+        const desigSelect = document.getElementById('id_designation');
+        const desigText = desigSelect ? desigSelect.options[desigSelect.selectedIndex]?.text : '';
+
+        const qualSelect = document.getElementById('id_highest_qualification');
+        const qualText = qualSelect ? qualSelect.options[qualSelect.selectedIndex]?.text : '';
+
+        document.getElementById('reviewFullName').textContent = `${fn} ${ln}`.trim() || '—';
+        document.getElementById('reviewUsername').textContent = un || '—';
+        document.getElementById('reviewEmail').textContent = em || '—';
+        document.getElementById('reviewEmpId').textContent = emp || '—';
+        document.getElementById('reviewDept').textContent = deptText || '—';
+        document.getElementById('reviewDesig').textContent = desigText || '—';
+        document.getElementById('reviewQual').textContent = qualText || '—';
+        document.getElementById('reviewSpec').textContent = spec || '—';
+    }
+
+    // Password Toggles with smooth animation
+    const toggleRegBtn = document.getElementById('toggleRegPwdBtn');
+    const pwdInput = document.getElementById('id_reg_password');
+    const pwdIcon = document.getElementById('toggleRegPwdIcon');
+
+    if (toggleRegBtn && pwdInput && pwdIcon) {
+        toggleRegBtn.addEventListener('click', function() {
+            const isPassword = pwdInput.getAttribute('type') === 'password';
+            pwdInput.setAttribute('type', isPassword ? 'text' : 'password');
+            pwdIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+        });
+    }
+
+    const toggleConfirmBtn = document.getElementById('toggleConfirmPwdBtn');
+    const confirmInput = document.getElementById('id_reg_confirm_password');
+    const confirmIcon = document.getElementById('toggleConfirmPwdIcon');
+
+    if (toggleConfirmBtn && confirmInput && confirmIcon) {
+        toggleConfirmBtn.addEventListener('click', function() {
+            const isPassword = confirmInput.getAttribute('type') === 'password';
+            confirmInput.setAttribute('type', isPassword ? 'text' : 'password');
+            confirmIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+        });
+    }
+
+    // Live Password Strength & Rules
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthLabel = document.getElementById('strengthLabel');
+    const matchFeedback = document.getElementById('matchFeedback');
+
+    const ruleLength = document.getElementById('ruleLength');
+    const ruleMixed = document.getElementById('ruleMixed');
+    const ruleNotNumeric = document.getElementById('ruleNotNumeric');
+    const ruleNotSimilar = document.getElementById('ruleNotSimilar');
+
+    function checkPasswordRules() {
+        const pwd = pwdInput ? pwdInput.value : '';
+        const username = document.getElementById('id_username')?.value.toLowerCase() || '';
+        const email = document.getElementById('id_email')?.value.toLowerCase() || '';
+
+        const hasLength = pwd.length >= 8;
+        const hasMixed = /[a-zA-Z]/.test(pwd) && /\d/.test(pwd);
+        const notAllNumeric = !/^\d+$/.test(pwd);
+        const notSimilar = pwd.length > 0 &&
+            (!username || !pwd.toLowerCase().includes(username)) &&
+            (!email || !pwd.toLowerCase().includes(email.split('@')[0]));
+
+        updateRule(ruleLength, hasLength);
+        updateRule(ruleMixed, hasMixed);
+        updateRule(ruleNotNumeric, notAllNumeric && pwd.length > 0);
+        updateRule(ruleNotSimilar, notSimilar && pwd.length > 0);
+
+        let score = 0;
+        if (pwd.length >= 8) score++;
+        if (pwd.length >= 12) score++;
+        if (hasMixed) score++;
+        if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+        if (notSimilar && notAllNumeric) score++;
+
+        strengthBar.className = 'strength-bar-fill';
+        if (pwd.length === 0) {
+            strengthLabel.textContent = 'Enter password';
+            strengthLabel.className = 'fw-bold text-muted';
+        } else if (pwd.length < 8) {
+            strengthBar.classList.add('too-short');
+            strengthLabel.textContent = 'Too Short (min 8 chars)';
+            strengthLabel.className = 'fw-bold text-danger';
+        } else if (score <= 2) {
+            strengthBar.classList.add('weak');
+            strengthLabel.textContent = 'Weak';
+            strengthLabel.className = 'fw-bold text-warning';
+        } else if (score === 3) {
+            strengthBar.classList.add('fair');
+            strengthLabel.textContent = 'Fair';
+            strengthLabel.className = 'fw-bold text-warning';
+        } else if (score === 4) {
+            strengthBar.classList.add('strong');
+            strengthLabel.textContent = 'Strong';
+            strengthLabel.className = 'fw-bold text-primary';
+        } else {
+            strengthBar.classList.add('very-strong');
+            strengthLabel.textContent = 'Very Strong';
+            strengthLabel.className = 'fw-bold text-success';
+        }
+
+        checkPasswordMatch();
+    }
+
+    function updateRule(element, isValid) {
+        if (!element) return;
+        if (isValid) {
+            element.className = 'pwd-rule-item valid';
+            element.querySelector('i').className = 'bi bi-check-circle-fill';
+        } else {
+            element.className = 'pwd-rule-item';
+            element.querySelector('i').className = 'bi bi-circle';
+        }
+    }
+
+    function checkPasswordMatch() {
+        const pwd = pwdInput ? pwdInput.value : '';
+        const confirm = confirmInput ? confirmInput.value : '';
+
+        if (!confirm) {
+            matchFeedback.innerHTML = '<i class="bi bi-dash-circle me-1"></i> Passwords must match exactly.';
+            matchFeedback.className = 'extra-small mt-2 p-2 bg-light rounded-2 border text-muted';
+            return;
+        }
+
+        if (pwd === confirm) {
+            matchFeedback.innerHTML = '<i class="bi bi-check-circle-fill me-1 text-success"></i> Passwords match.';
+            matchFeedback.className = 'extra-small mt-2 p-2 bg-light rounded-2 border text-success fw-semibold';
+        } else {
+            matchFeedback.innerHTML = '<i class="bi bi-x-circle-fill me-1 text-danger"></i> Passwords do not match.';
+            matchFeedback.className = 'extra-small mt-2 p-2 bg-light rounded-2 border text-danger fw-semibold';
+        }
+    }
+
+    if (pwdInput) pwdInput.addEventListener('input', checkPasswordRules);
+    if (confirmInput) confirmInput.addEventListener('input', checkPasswordMatch);
+
+    // Auto-navigate to step with server errors
+    document.addEventListener('DOMContentLoaded', function() {
+        const hasStep3Error = {{ form.password.errors|yesno:"true,false" }} || {{ form.confirm_password.errors|yesno:"true,false" }};
+        const hasStep2Error = {{ form.employee_id.errors|yesno:"true,false" }} || {{ form.department.errors|yesno:"true,false" }} || {{ form.designation.errors|yesno:"true,false" }} || {{ form.highest_qualification.errors|yesno:"true,false" }} || {{ form.specialization.errors|yesno:"true,false" }};
+        const hasStep1Error = {{ form.first_name.errors|yesno:"true,false" }} || {{ form.last_name.errors|yesno:"true,false" }} || {{ form.username.errors|yesno:"true,false" }} || {{ form.email.errors|yesno:"true,false" }};
+
+        if (hasStep3Error) {
+            maxCompletedStep = 2;
+            showStep(3);
+        } else if (hasStep2Error) {
+            maxCompletedStep = 1;
+            showStep(2);
+        } else if (hasStep1Error) {
+            showStep(1);
+        }
+    });
+
+    // Form Submission Feedback
+    const registrationForm = document.getElementById('registrationForm');
+    const submitRegBtn = document.getElementById('submitRegBtn');
+    const regSpinner = document.getElementById('regSpinner');
+    const regBtnText = document.getElementById('regBtnText');
+    const regBtnIcon = document.getElementById('regBtnIcon');
+
+    if (registrationForm && submitRegBtn) {
+        registrationForm.addEventListener('submit', function(e) {
+            const pwd = pwdInput ? pwdInput.value : '';
+            const confirm = confirmInput ? confirmInput.value : '';
+
+            if (pwd.length < 8) {
+                e.preventDefault();
+                alert('Password must be at least 8 characters long.');
+                showStep(3);
+                pwdInput.focus();
+                return;
+            }
+
+            if (pwd !== confirm) {
+                e.preventDefault();
+                alert('Passwords do not match. Please re-enter matching passwords.');
+                showStep(3);
+                confirmInput.focus();
+                return;
+            }
+
+            if (regSpinner) regSpinner.classList.remove('d-none');
+            if (regBtnIcon) regBtnIcon.classList.add('d-none');
+            if (regBtnText) regBtnText.textContent = 'Creating Account...';
+            submitRegBtn.disabled = true;
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Sponsored Projects &bull; FacultyOS Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-purple">Category 4 &bull; 15 Pts Max</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">Sponsored Projects &amp; Research Grants</h1>
+            <p class="text-muted extra-small mb-0 mt-1">Extramural research grants (DST, SERB, AICTE), industrial consultancies, and laboratory modernizations</p>
+        </div>
+        <div>
+            <a href="{% url 'project_create' %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                <i class="bi bi-plus-lg"></i> Log Project / Grant
+            </a>
+        </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="saas-card">
+        <div class="saas-card-header flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <div class="saas-card-title">
+                    <i class="bi bi-diagram-3 text-purple" style="color:var(--violet-600);"></i> Sponsored Projects Directory
+                </div>
+                <span class="saas-badge saas-badge-neutral">{{ records.count }} Projects</span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <!-- Search Filter -->
+                <div class="position-relative">
+                    <input type="text" class="saas-input py-1 pe-2 ps-4" style="font-size: 0.78rem; width: 180px;" placeholder="Filter project..." data-table-filter="projectTable">
+                    <i class="bi bi-search position-absolute start-0 top-50 translate-middle-y ms-2 text-muted extra-small"></i>
+                </div>
+
+                <!-- Session Selector -->
+                <form method="GET" class="d-flex align-items-center gap-1">
+                    <select name="year" class="saas-select py-1 pe-3" style="font-size: 0.78rem; width: auto;" onchange="this.form.submit()">
+                        <option value="">All Sessions</option>
+                        {% for yr in available_years %}
+                            <option value="{{ yr }}" {% if yr == year_filter %}selected{% endif %}>{{ yr }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+
+        <div class="saas-card-body p-0">
+            {% if records %}
+                <div class="table-responsive">
+                    <table class="saas-table" id="projectTable">
+                        <thead>
+                            <tr>
+                                <th>Project Title &amp; Sponsoring Agency</th>
+                                <th>Project Type</th>
+                                <th>Sanctioned Grant</th>
+                                <th>Investigator Role</th>
+                                <th>Status / Duration</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in records %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ r.title }}</div>
+                                        <div class="extra-small text-muted">{{ r.funding_agency }} &bull; Session {{ r.academic_year }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge saas-badge-blue">{{ r.get_project_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success font-mono">₹ {{ r.grant_amount|floatformat:2 }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge saas-badge-neutral">{{ r.get_role_display }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge {% if r.status == 'Completed' %}saas-badge-green{% else %}saas-badge-amber{% endif %}">
+                                            {{ r.status }}
+                                        </span>
+                                        <div class="extra-small text-muted mt-1">{{ r.duration_months }} Months</div>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'project_update' r.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'project_delete' r.pk %}" class="btn-saas btn-saas-ghost text-danger btn-saas-sm py-1 px-2" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state-box">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-diagram-3"></i>
+                    </div>
+                    <h2 class="empty-state-title">No Sponsored Projects Recorded</h2>
+                    <p class="empty-state-text">
+                        No funded research projects or industrial consultancies logged for this session. Add your funded projects to accumulate up to 15 points.
+                    </p>
+                    <a href="{% url 'project_create' %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                        <i class="bi bi-plus-lg"></i> Log Sponsored Project
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

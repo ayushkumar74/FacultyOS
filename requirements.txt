@@ -1,0 +1,10 @@
+# Faculty Self-Appraisal and Career Advancement Portal
+# Python 3.10+ / Django 5.x / 6.x Dependencies
+
+Django>=5.1,<6.2
+reportlab>=4.2.0
+pillow>=10.0.0
+asgiref>=3.8.0
+sqlparse>=0.5.0
+tzdata>=2025.1
+

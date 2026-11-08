@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Appraisal Reviews Queue &bull; FacultyOS Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue">Administration</span>
+                <span class="saas-badge saas-badge-neutral">{{ appraisals.count }} Submissions</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">Faculty Appraisal Review Queue</h1>
+            <p class="text-muted extra-small mb-0 mt-1">Audit submitted dossiers, inspect performance points, record committee feedback, and assign CAS decisions</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'admin_export_appraisals_csv' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                <i class="bi bi-file-earmark-spreadsheet text-success"></i> Export Reviews CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Bar Card -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-body p-3">
+            <form method="GET" class="row g-2 align-items-center">
+                <div class="col-md-5">
+                    <select name="status" class="saas-select py-1">
+                        <option value="">All Review Statuses</option>
+                        {% for code, name in status_choices %}
+                            <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <input type="text" name="year" value="{{ year_filter }}" class="saas-input py-1" placeholder="Filter by Session (e.g. 2025-2026)">
+                </div>
+
+                <div class="col-md-3 d-flex gap-1">
+                    <button type="submit" class="btn-saas btn-saas-primary btn-saas-sm w-100">
+                        <i class="bi bi-funnel"></i> Apply Filter
+                    </button>
+                    {% if status_filter or year_filter %}
+                        <a href="{% url 'admin_appraisals_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm" title="Clear Filters">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Appraisals Queue Table (Optimized Layout - No Horizontal Overflow) -->
+    <div class="saas-card">
+        <div class="saas-card-body p-0">
+            {% if appraisals %}
+                <div class="table-responsive">
+                    <table class="saas-table" style="min-width: 860px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 28%;">Faculty Member</th>
+                                <th style="width: 16%;">Session &amp; Submitted</th>
+                                <th style="width: 15%;">Evaluated Score</th>
+                                <th style="width: 14%;">Review Status</th>
+                                <th style="width: 15%;">CAS Recommendation</th>
+                                <th class="text-end" style="width: 12%;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in appraisals %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ a.faculty.user.get_full_name|default:a.faculty.user.username }}</div>
+                                        <div class="d-flex align-items-center gap-2 mt-0.5">
+                                            <span class="employee-id-pill font-mono">{{ a.faculty.employee_id }}</span>
+                                            <span class="extra-small text-muted text-truncate" style="max-width: 170px;">{{ a.faculty.get_department_display }} &bull; {{ a.faculty.designation }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge saas-badge-neutral fw-semibold">{{ a.academic_year }}</span>
+                                        <div class="extra-small text-muted mt-1">{{ a.submission_date|date:"d M Y" }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="score-badge score-badge-verygood">
+                                            {{ a.total_score }} / 100
+                                        </span>
+                                        <div class="extra-small text-muted mt-1">{{ a.performance_grade }}</div>
+                                    </td>
+                                    <td>
+                                        {% if a.status == 'APPROVED' %}
+                                            <span class="saas-badge saas-badge-green"><i class="bi bi-check-circle-fill"></i> Approved</span>
+                                        {% elif a.status == 'REJECTED' %}
+                                            <span class="saas-badge saas-badge-rose"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                                        {% elif a.status == 'REVISION_REQUESTED' %}
+                                            <span class="saas-badge saas-badge-amber"><i class="bi bi-arrow-repeat"></i> Revision</span>
+                                        {% else %}
+                                            <span class="saas-badge saas-badge-blue"><i class="bi bi-hourglass-split"></i> {{ a.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge saas-badge-neutral text-truncate" style="max-width: 160px;" title="{{ a.promotion_recommendation }}">
+                                            {{ a.promotion_recommendation }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            <a href="{% url 'admin_appraisal_review' a.pk %}" class="btn-saas btn-saas-primary btn-saas-sm py-1 px-2" title="Review Submission">
+                                                <i class="bi bi-clipboard-check"></i> Review
+                                            </a>
+                                            <a href="{% url 'admin_download_pdf' a.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2" title="Download Certified PDF">
+                                                <i class="bi bi-file-earmark-pdf"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state-box">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-check2-all"></i>
+                    </div>
+                    <h3 class="empty-state-title">No Appraisal Submissions Found</h3>
+                    <p class="empty-state-text">
+                        There are no faculty self-appraisal submissions matching the selected filters.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

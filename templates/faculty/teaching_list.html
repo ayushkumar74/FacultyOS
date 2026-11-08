@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Teaching Records &bull; FacultyOS Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue">Category 1 &bull; 40 Pts Max</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">Teaching Hours &amp; Instructional Records</h1>
+            <p class="text-muted extra-small mb-0 mt-1">Lecture hours delivery compliance, pass percentages, and student feedback evaluations</p>
+        </div>
+        <div>
+            <a href="{% url 'teaching_create' %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                <i class="bi bi-plus-lg"></i> Log Teaching Record
+            </a>
+        </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="saas-card">
+        <div class="saas-card-header flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <div class="saas-card-title">
+                    <i class="bi bi-journal-text"></i> Course Ledger
+                </div>
+                <span class="saas-badge saas-badge-neutral">{{ records.count }} Records</span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <!-- Search Filter -->
+                <div class="position-relative">
+                    <input type="text" class="saas-input py-1 pe-2 ps-4" style="font-size: 0.78rem; width: 180px;" placeholder="Filter course or code..." data-table-filter="teachingTable">
+                    <i class="bi bi-search position-absolute start-0 top-50 translate-middle-y ms-2 text-muted extra-small"></i>
+                </div>
+
+                <!-- Session Selector -->
+                <form method="GET" class="d-flex align-items-center gap-1">
+                    <select name="year" class="saas-select py-1 pe-3" style="font-size: 0.78rem; width: auto;" onchange="this.form.submit()">
+                        <option value="">All Sessions</option>
+                        {% for yr in available_years %}
+                            <option value="{{ yr }}" {% if yr == year_filter %}selected{% endif %}>{{ yr }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+
+        <div class="saas-card-body p-0">
+            {% if records %}
+                <div class="table-responsive">
+                    <table class="saas-table" id="teachingTable">
+                        <thead>
+                            <tr>
+                                <th>Subject Code &amp; Title</th>
+                                <th>Session / Sem</th>
+                                <th>Type</th>
+                                <th>Hours (Cond / Sched)</th>
+                                <th>Compliance</th>
+                                <th>Pass %</th>
+                                <th>Student Feedback</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in records %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark font-mono">{{ r.subject_code }}</div>
+                                        <div class="extra-small text-muted">{{ r.subject_name }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge saas-badge-neutral">{{ r.academic_year }}</span>
+                                        <div class="extra-small text-muted">{{ r.semester }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge saas-badge-blue">{{ r.get_course_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-dark">{{ r.conducted_hours }}</strong> <span class="text-muted">/ {{ r.scheduled_hours }} hrs</span>
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge {% if r.compliance_rate >= 90 %}saas-badge-green{% elif r.compliance_rate >= 75 %}saas-badge-amber{% else %}saas-badge-rose{% endif %}">
+                                            {{ r.compliance_rate }}%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-dark">{{ r.pass_percentage }}%</strong>
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge saas-badge-amber">
+                                            <i class="bi bi-star-fill text-warning"></i> {{ r.student_feedback_score }} / 5.0
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'teaching_update' r.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'teaching_delete' r.pk %}" class="btn-saas btn-saas-ghost text-danger btn-saas-sm py-1 px-2" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state-box">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-journal-plus"></i>
+                    </div>
+                    <h2 class="empty-state-title">No Teaching Records Found</h2>
+                    <p class="empty-state-text">
+                        No instructional lecture records have been recorded for this view. Log courses taught to accumulate up to 40 teaching performance points.
+                    </p>
+                    <a href="{% url 'teaching_create' %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                        <i class="bi bi-plus-lg"></i> Log Teaching Record
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

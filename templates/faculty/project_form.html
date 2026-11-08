@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} &bull; FacultyOS Platform{% endblock %}
+
+{% block content %}
+<div class="container py-3" style="max-width: 860px;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <div class="saas-badge saas-badge-blue mb-1">Projects &bull; Up to 15 Pts</div>
+            <h1 class="h5 fw-bold mb-0">{{ title }}</h1>
+            <p class="text-muted extra-small mb-0">Record extramural research grants, consultancies, and institutional modernization</p>
+        </div>
+        <a href="{% url 'project_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+            <i class="bi bi-arrow-left"></i> Back to Projects
+        </a>
+    </div>
+
+    <div class="saas-card">
+        <div class="saas-card-body p-4">
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger py-2 px-3 extra-small rounded-2 mb-4" role="alert">
+                        <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Please correct the following errors:</div>
+                        <ul class="mb-0 ps-3">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <!-- Project Identification -->
+                <div class="form-section-group">
+                    <div class="form-section-title"><i class="bi bi-diagram-3 text-primary me-1"></i> Project Identification</div>
+                    <div class="form-section-desc">Session, project classification, investigator role, and title</div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Academic Year <span class="text-danger">*</span></label>
+                            {{ form.academic_year }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Project Type <span class="text-danger">*</span></label>
+                            {{ form.project_type }}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="saas-form-label">Project Title <span class="text-danger">*</span></label>
+                            {{ form.title }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Investigator Role <span class="text-danger">*</span></label>
+                            {{ form.role }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Funding / Sponsoring Agency <span class="text-danger">*</span></label>
+                            {{ form.funding_agency }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial & Timeline -->
+                <div class="form-section-group">
+                    <div class="form-section-title"><i class="bi bi-cash-stack text-primary me-1"></i> Funding Agency &amp; Timeline</div>
+                    <div class="form-section-desc">Sponsoring agency, sanctioned budget, and project milestones</div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Sanctioned Grant Amount (INR) <span class="text-danger">*</span></label>
+                            {{ form.grant_amount }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Duration (Months) <span class="text-danger">*</span></label>
+                            {{ form.duration_months }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Current Status <span class="text-danger">*</span></label>
+                            {{ form.status }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Completion Date</label>
+                            {{ form.completion_date }}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="saas-form-label">Key Outcomes &amp; Deliverables</label>
+                            {{ form.outcomes_summary }}
+                            <div class="saas-form-helper">Mention patents, prototypes, publications, or lab infrastructure created</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <a href="{% url 'project_list' %}" class="btn-saas btn-saas-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn-saas btn-saas-primary">
+                        <i class="bi bi-check2-circle"></i> Save Project Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

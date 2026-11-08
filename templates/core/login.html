@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In &bull; FacultyOS Platform{% endblock %}
+
+{% block messages %}{% endblock %}
+
+{% block content %}
+<div class="auth-split-wrapper">
+    <div class="auth-split-card">
+        <!-- ===================================================== -->
+        <!-- LEFT PANEL: Institutional Academic Identity           -->
+        <!-- ===================================================== -->
+        <div class="auth-split-left">
+            <div>
+                <div class="auth-brand-badge">
+                    <i class="bi bi-mortarboard-fill"></i> FacultyOS Institutional
+                </div>
+
+                <h2 class="auth-brand-heading">Empowering Academic Excellence</h2>
+
+                <p class="auth-brand-desc">
+                    FacultyOS provides a unified platform for documenting academic achievements, monitoring performance-based appraisal scores, and supporting faculty career advancement through a transparent evaluation process.
+                </p>
+
+                <div class="auth-pillar-list">
+                    <div class="auth-pillar-item">
+                        <div class="auth-pillar-icon"><i class="bi bi-journal-check"></i></div>
+                        <div>
+                            <div class="auth-pillar-title">Comprehensive Academic Records</div>
+                            <div class="auth-pillar-sub">Teaching delivery, research citations, professional workshops, and funded projects.</div>
+                        </div>
+                    </div>
+                    <div class="auth-pillar-item">
+                        <div class="auth-pillar-icon"><i class="bi bi-calculator"></i></div>
+                        <div>
+                            <div class="auth-pillar-title">Objective PBAS Scoring</div>
+                            <div class="auth-pillar-sub">Standardized 100-point rubric with automated performance metric calculations.</div>
+                        </div>
+                    </div>
+                    <div class="auth-pillar-item">
+                        <div class="auth-pillar-icon"><i class="bi bi-award"></i></div>
+                        <div>
+                            <div class="auth-pillar-title">Career Advancement Scheme</div>
+                            <div class="auth-pillar-sub">Auditable scrutiny workflows and formal committee promotion evaluations.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="auth-split-footer-line">
+                Academic Records &bull; PBAS Assessment &bull; CAS Progression
+            </div>
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- RIGHT PANEL: Authentication Form & Evaluator Drawer   -->
+        <!-- ===================================================== -->
+        <div class="auth-split-right">
+            <!-- FacultyOS Header -->
+            <div class="auth-form-header mb-3">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="auth-minimal-logo" style="width: 32px; height: 32px; font-size: 1rem; margin-bottom: 0;">
+                        <i class="bi bi-mortarboard-fill"></i>
+                    </div>
+                    <span class="auth-minimal-brand mb-0">FacultyOS Portal</span>
+                </div>
+                <h1 class="auth-minimal-title mb-1" style="font-size: 1.25rem;">Welcome Back</h1>
+                <p class="auth-minimal-subhead">Sign in to access your faculty workspace.</p>
+            </div>
+
+            <!-- Authentication Form -->
+            <form method="POST" id="loginForm" novalidate autocomplete="off">
+                {% csrf_token %}
+
+                <!-- Username or Employee ID -->
+                <div class="auth-field-group mb-2.5">
+                    <label for="id_username" class="auth-label">Username or Employee ID</label>
+                    <div class="auth-input-group">
+                        <span class="auth-input-prefix-icon"><i class="bi bi-person"></i></span>
+                        {{ form.username }}
+                    </div>
+                    {% if form.username.errors %}
+                        <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.username.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Password with Masking & Eye Toggle -->
+                <div class="auth-field-group mb-2.5">
+                    <label for="id_password" class="auth-label">Account Password</label>
+                    <div class="auth-input-group auth-password-group has-password-toggle">
+                        <span class="auth-input-prefix-icon"><i class="bi bi-lock"></i></span>
+                        {{ form.password }}
+                        <button type="button" class="auth-password-toggle-btn" id="togglePasswordBtn" aria-label="Toggle password visibility">
+                            <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                        <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Keep me signed in -->
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <label class="auth-checkbox-wrap" for="rememberMe">
+                        <input type="checkbox" id="rememberMe" name="remember_me">
+                        <span>Keep me signed in</span>
+                    </label>
+                </div>
+
+                <!-- Validation & Error Feedback -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 px-3 extra-small rounded-2 mb-3 d-flex align-items-center gap-2 border" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 text-danger"></i>
+                        <div>{{ form.non_field_errors.0 }}</div>
+                    </div>
+                {% endif %}
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} py-2 px-3 extra-small rounded-2 mb-3 d-flex align-items-center gap-2 border" role="alert">
+                            {% if message.tags == 'success' %}
+                                <i class="bi bi-check-circle-fill flex-shrink-0 text-success"></i>
+                            {% elif message.tags == 'danger' or message.tags == 'error' %}
+                                <i class="bi bi-exclamation-triangle-fill flex-shrink-0 text-danger"></i>
+                            {% else %}
+                                <i class="bi bi-info-circle-fill flex-shrink-0 text-primary"></i>
+                            {% endif %}
+                            <div>{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Dynamic Feedback Notification on Credential Fill -->
+                <div id="fillFeedback" class="alert alert-info py-2 px-3 extra-small rounded-2 mb-3 d-none align-items-center gap-2 border" role="status">
+                    <i class="bi bi-check-circle-fill flex-shrink-0 text-primary"></i>
+                    <div id="fillFeedbackMsg">Credentials loaded. Click Sign In to continue.</div>
+                </div>
+
+                <!-- Sign In Submit Button -->
+                <button type="submit" class="auth-submit-btn" id="submitLoginBtn">
+                    <span class="btn-spinner d-none" id="btnSpinner"></span>
+                    <span class="btn-text" id="btnText">Sign In</span>
+                    <i class="bi bi-arrow-right btn-icon-arrow" id="btnIcon"></i>
+                </button>
+            </form>
+
+            <!-- Registration Link -->
+            <div class="pt-2.5 mt-2.5 text-center border-top">
+                <span class="text-muted extra-small">New faculty member? </span>
+                <a href="{% url 'register' %}" class="extra-small fw-semibold text-primary">
+                    Register official account
+                </a>
+            </div>
+
+            <!-- Evaluator Test Accounts Drawer -->
+            <div class="evaluator-card mt-2.5">
+                <button class="evaluator-toggle-btn d-flex justify-content-between align-items-center w-100 p-2 bg-light border-0 text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#demoDrawer" aria-expanded="false" aria-controls="demoDrawer" style="font-size: 0.76rem;">
+                    <span class="fw-semibold"><i class="bi bi-key-fill text-primary me-1"></i> Evaluator Test Accounts</span>
+                    <i class="bi bi-chevron-down extra-small"></i>
+                </button>
+
+                <div class="collapse" id="demoDrawer">
+                    <div class="p-2 border-top bg-white">
+                        <div class="table-responsive">
+                            <table class="w-100" style="font-size: 0.74rem;">
+                                <thead>
+                                    <tr class="text-muted border-bottom" style="font-size: 0.66rem; text-transform: uppercase;">
+                                        <th class="pb-1 fw-semibold">Role</th>
+                                        <th class="pb-1 fw-semibold">Username</th>
+                                        <th class="pb-1 fw-semibold">Password</th>
+                                        <th class="pb-1 text-end fw-semibold">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-bottom">
+                                        <td class="py-1"><span class="badge bg-light text-dark border">Admin</span></td>
+                                        <td class="py-1"><code class="text-dark fw-semibold">admin</code></td>
+                                        <td class="py-1"><code class="text-secondary">admin123</code></td>
+                                        <td class="py-1 text-end">
+                                            <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size: 0.68rem;" onclick="fillAccount('admin', 'admin123', 'System Administrator')">
+                                                Fill
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1"><span class="badge bg-light text-dark border">Faculty</span></td>
+                                        <td class="py-1"><code class="text-dark fw-semibold">rsharma</code></td>
+                                        <td class="py-1"><code class="text-secondary">faculty123</code></td>
+                                        <td class="py-1 text-end">
+                                            <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size: 0.68rem;" onclick="fillAccount('rsharma', 'faculty123', 'Prof. Rajesh Sharma')">
+                                                Fill
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Password Visibility Toggle
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    const pwdInput = document.getElementById('id_password');
+    const pwdIcon = document.getElementById('togglePasswordIcon');
+
+    if (toggleBtn && pwdInput && pwdIcon) {
+        toggleBtn.addEventListener('click', function() {
+            const isPassword = pwdInput.getAttribute('type') === 'password';
+            pwdInput.setAttribute('type', isPassword ? 'text' : 'password');
+            pwdIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+        });
+    }
+
+    // Submit state indication
+    const loginForm = document.getElementById('loginForm');
+    const submitBtn = document.getElementById('submitLoginBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+    const btnIcon = document.getElementById('btnIcon');
+
+    if (loginForm && submitBtn) {
+        loginForm.addEventListener('submit', function() {
+            if (btnSpinner) btnSpinner.classList.remove('d-none');
+            if (btnIcon) btnIcon.classList.add('d-none');
+            if (btnText) btnText.textContent = 'Signing in...';
+            submitBtn.style.opacity = '0.9';
+            submitBtn.style.pointerEvents = 'none';
+        });
+    }
+
+    // Autofill Evaluator Demo Credentials
+    function fillAccount(username, password, roleName) {
+        const uInput = document.getElementById('id_username');
+        const pInput = document.getElementById('id_password');
+        const feedback = document.getElementById('fillFeedback');
+        const feedbackMsg = document.getElementById('fillFeedbackMsg');
+
+        if (uInput && pInput) {
+            uInput.value = username;
+            pInput.value = password;
+            uInput.classList.remove('is-invalid');
+            pInput.classList.remove('is-invalid');
+
+            if (feedback && feedbackMsg) {
+                feedbackMsg.innerHTML = '<strong>' + roleName + '</strong> credentials loaded (<code class="text-primary">' + username + '</code>). Click <strong>Sign In</strong> to continue.';
+                feedback.classList.remove('d-none');
+                feedback.classList.add('d-flex');
+            }
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}FacultyOS Administration &bull; Institutional Command{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* FacultyOS Institutional Administration Theme */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+        --primary: #172433 !important;
+        --secondary: #24364A !important;
+        --accent: #0F766E !important;
+        --primary-fg: #FFFFFF !important;
+        --body-fg: #172433 !important;
+        --body-bg: #F3F0E9 !important;
+        --header-bg: #172433 !important;
+        --header-color: #FFFFFF !important;
+        --header-link-color: #D6B477 !important;
+        --breadcrumbs-bg: #24364A !important;
+        --breadcrumbs-link-fg: #D6B477 !important;
+        --breadcrumbs-fg: #BAC5CB !important;
+        --link-fg: #0F766E !important;
+        --link-hover-color: #0D655E !important;
+        --link-selected-fg: #0F766E !important;
+        --hairline-color: #DCE2E5 !important;
+        --border-color: #DCE2E5 !important;
+        --darkened-bg: #EAE5DC !important;
+        --selected-bg: #E6F4F1 !important;
+        --selected-row: #F0FDFA !important;
+        --button-bg: #0F766E !important;
+        --button-hover-bg: #0D655E !important;
+        --default-button-bg: #172433 !important;
+        --default-button-hover-bg: #24364A !important;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        background-color: #F3F0E9 !important;
+        color: #172433 !important;
+    }
+
+    #header {
+        background: #172433 !important;
+        border-bottom: 2px solid #D6B477 !important;
+        padding: 12px 24px !important;
+    }
+
+    #branding h1 {
+        font-size: 1.15rem !important;
+        font-weight: 700 !important;
+        color: #FFFFFF !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    #branding h1 a:link, #branding h1 a:visited {
+        color: #FFFFFF !important;
+    }
+
+    .breadcrumbs {
+        background: #24364A !important;
+        color: #BAC5CB !important;
+        padding: 8px 24px !important;
+        font-size: 0.78rem !important;
+    }
+
+    .breadcrumbs a {
+        color: #D6B477 !important;
+    }
+
+    div.breadcrumbs a:focus, div.breadcrumbs a:hover {
+        color: #FFFFFF !important;
+    }
+
+    .module {
+        background: #FFFFFF !important;
+        border: 1px solid #DCE2E5 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 1px 3px rgba(23, 36, 51, 0.05) !important;
+        overflow: hidden !important;
+        margin-bottom: 20px !important;
+    }
+
+    .module caption, .module h2 {
+        background: #F9F8F5 !important;
+        color: #172433 !important;
+        border-bottom: 1px solid #DCE2E5 !important;
+        font-weight: 700 !important;
+        font-size: 0.85rem !important;
+        letter-spacing: 0.02em !important;
+    }
+
+    .button, input[type=submit], input[type=button], .submit-row input, a.button {
+        background: #0F766E !important;
+        color: #FFFFFF !important;
+        border-radius: 4px !important;
+        font-weight: 600 !important;
+        border: none !important;
+        padding: 6px 14px !important;
+        font-size: 0.8rem !important;
+        transition: background 0.15s ease !important;
+    }
+
+    .button:hover, input[type=submit]:hover, input[type=button]:hover {
+        background: #0D655E !important;
+    }
+
+    .button.default, input[type=submit].default, .submit-row input.default {
+        background: #172433 !important;
+    }
+
+    .button.default:hover, input[type=submit].default:hover {
+        background: #24364A !important;
+    }
+
+    #changelist {
+        background: transparent !important;
+    }
+
+    #changelist table {
+        background: #FFFFFF !important;
+        border-radius: 8px !important;
+        border: 1px solid #DCE2E5 !important;
+        overflow: hidden !important;
+    }
+
+    #changelist-filter {
+        background: #FFFFFF !important;
+        border: 1px solid #DCE2E5 !important;
+        border-radius: 8px !important;
+    }
+
+    #changelist-filter h2 {
+        background: #F9F8F5 !important;
+        color: #172433 !important;
+        border-bottom: 1px solid #DCE2E5 !important;
+    }
+
+    #user-tools {
+        font-size: 0.78rem !important;
+        color: #C4CED4 !important;
+    }
+
+    #user-tools a {
+        color: #D6B477 !important;
+        border-bottom: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block branding %}
+<div id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <span style="display:inline-block;width:24px;height:24px;background:#D6B477;color:#172433;border-radius:4px;text-align:center;line-height:24px;font-weight:bold;margin-right:6px;font-size:14px;">🎓</span>
+        <strong style="color:#FFFFFF;letter-spacing:-0.02em;">FacultyOS</strong>
+        <span style="color:#D6B477;font-size:0.75rem;font-weight:600;margin-left:6px;text-transform:uppercase;letter-spacing:0.06em;background:rgba(214,180,119,0.18);padding:2px 6px;border-radius:4px;border:1px solid rgba(214,180,119,0.4);">Institutional Admin</span>
+    </a>
+</div>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+

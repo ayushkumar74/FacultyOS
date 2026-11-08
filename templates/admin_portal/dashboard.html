@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Console &bull; FacultyOS Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue">Administration</span>
+                <span class="saas-badge saas-badge-neutral font-mono">Executive Console</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">Administrative Evaluation Console</h1>
+            <p class="text-muted extra-small mb-0 mt-1">Overview of faculty members, PBAS performance submissions, and CAS promotion clearances</p>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <form method="GET" class="d-flex align-items-center gap-1 bg-white p-1 rounded-2 border shadow-xs">
+                <label for="id_admin_session_year" class="extra-small text-muted fw-semibold ps-2 d-none d-sm-inline">Session:</label>
+                <select name="year" id="id_admin_session_year" class="saas-select border-0 py-1 pe-3 fw-semibold text-primary" style="font-size: 0.8rem; width: auto;" onchange="this.form.submit()">
+                    {% for yr in available_years %}
+                        <option value="{{ yr }}" {% if yr == current_year %}selected{% endif %}>Academic Session {{ yr }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            <a href="{% url 'admin_appraisals_list' %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                <i class="bi bi-check2-all"></i> Review Submissions
+            </a>
+        </div>
+    </div>
+
+    <!-- 5 KPI Metrics Cards Row (Clean Minimal Style) -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl">
+            <div class="metric-card">
+                <div class="metric-label">Total Faculty</div>
+                <div class="metric-value-row">
+                    <div class="metric-value" data-counter-target="{{ total_faculty }}">{{ total_faculty }}</div>
+                    <div class="metric-icon-wrap">
+                        <i class="bi bi-people"></i>
+                    </div>
+                </div>
+                <div class="text-muted extra-small mt-2 pt-2 border-top">Registered Members</div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl">
+            <div class="metric-card">
+                <div class="metric-label">Total Submissions</div>
+                <div class="metric-value-row">
+                    <div class="metric-value" data-counter-target="{{ total_appraisals }}">{{ total_appraisals }}</div>
+                    <div class="metric-icon-wrap">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                </div>
+                <div class="text-muted extra-small mt-2 pt-2 border-top">Session {{ current_year }}</div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl">
+            <div class="metric-card">
+                <div class="metric-label">Pending Reviews</div>
+                <div class="metric-value-row">
+                    <div class="metric-value" data-counter-target="{{ pending_appraisals }}">{{ pending_appraisals }}</div>
+                    <div class="metric-icon-wrap">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                </div>
+                <div class="text-muted extra-small mt-2 pt-2 border-top">Awaiting Audit</div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl">
+            <div class="metric-card">
+                <div class="metric-label">Approved</div>
+                <div class="metric-value-row">
+                    <div class="metric-value" data-counter-target="{{ approved_appraisals }}">{{ approved_appraisals }}</div>
+                    <div class="metric-icon-wrap">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                </div>
+                <div class="text-muted extra-small mt-2 pt-2 border-top">Cleared Appraisals</div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl">
+            <div class="metric-card">
+                <div class="metric-label">Promotion Eligible</div>
+                <div class="metric-value-row">
+                    <div class="metric-value" data-counter-target="{{ promotion_eligible }}">{{ promotion_eligible }}</div>
+                    <div class="metric-icon-wrap">
+                        <i class="bi bi-award"></i>
+                    </div>
+                </div>
+                <div class="text-muted extra-small mt-2 pt-2 border-top">CAS Candidates</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-7">
+            <div class="saas-card h-100 mb-0">
+                <div class="saas-card-header">
+                    <div class="saas-card-title">
+                        <i class="bi bi-bar-chart"></i> Department Distribution
+                    </div>
+                    <span class="extra-small text-muted">Faculty Count</span>
+                </div>
+                <div class="saas-card-body">
+                    {% if dept_data %}
+                        <div style="height: 240px; position: relative;">
+                            <canvas id="deptChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 px-3 my-auto">
+                            <div class="empty-state-icon mb-2">
+                                <i class="bi bi-bar-chart"></i>
+                            </div>
+                            <h3 class="empty-state-title fs-6 fw-bold mb-1">No Department Data</h3>
+                            <p class="empty-state-text extra-small text-muted mb-0">No faculty department records currently recorded.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="saas-card h-100 mb-0">
+                <div class="saas-card-header">
+                    <div class="saas-card-title">
+                        <i class="bi bi-pie-chart"></i> Appraisal Statuses
+                    </div>
+                    <span class="extra-small text-muted">Session {{ current_year }}</span>
+                </div>
+                <div class="saas-card-body">
+                    {% if total_appraisals > 0 %}
+                        <div style="height: 240px; position: relative;">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 px-3 my-auto">
+                            <div class="empty-state-icon mb-2">
+                                <i class="bi bi-pie-chart"></i>
+                            </div>
+                            <h3 class="empty-state-title fs-6 fw-bold mb-1">No Appraisal Submissions</h3>
+                            <p class="empty-state-text extra-small text-muted mb-0">No self-appraisal submissions recorded yet for Session {{ current_year }}.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Submissions Table (Optimized Layout) -->
+    <div class="saas-card">
+        <div class="saas-card-header flex-wrap gap-2">
+            <div class="saas-card-title">
+                <i class="bi bi-clock-history"></i> Recent Self-Appraisal Submissions
+            </div>
+            <a href="{% url 'admin_appraisals_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                View All Submissions <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="saas-card-body p-0">
+            {% if recent_submissions %}
+                <div class="table-responsive">
+                    <table class="saas-table">
+                        <thead>
+                            <tr>
+                                <th>Faculty Member</th>
+                                <th>Department &amp; Designation</th>
+                                <th>Submitted On</th>
+                                <th>Evaluated Score</th>
+                                <th>Review Status</th>
+                                <th>CAS Recommendation</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in recent_submissions %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ a.faculty.user.get_full_name|default:a.faculty.user.username }}</div>
+                                        <div class="extra-small text-muted font-mono">{{ a.faculty.employee_id }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">{{ a.faculty.get_department_display }}</div>
+                                        <div class="extra-small text-muted">{{ a.faculty.designation }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="extra-small">{{ a.submission_date|date:"d M Y" }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="score-badge score-badge-verygood">
+                                            {{ a.total_score }} / 100
+                                        </span>
+                                        <div class="extra-small text-muted mt-1">{{ a.performance_grade }}</div>
+                                    </td>
+                                    <td>
+                                        {% if a.status == 'APPROVED' %}
+                                            <span class="saas-badge saas-badge-green"><i class="bi bi-check-circle-fill"></i> Approved</span>
+                                        {% elif a.status == 'REJECTED' %}
+                                            <span class="saas-badge saas-badge-rose"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                                        {% elif a.status == 'REVISION_REQUESTED' %}
+                                            <span class="saas-badge saas-badge-amber"><i class="bi bi-arrow-repeat"></i> Revision</span>
+                                        {% else %}
+                                            <span class="saas-badge saas-badge-blue"><i class="bi bi-hourglass-split"></i> {{ a.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge saas-badge-neutral">{{ a.promotion_recommendation }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            <a href="{% url 'admin_appraisal_review' a.pk %}" class="btn-saas btn-saas-primary btn-saas-sm py-1 px-2" title="Review Submission">
+                                                <i class="bi bi-clipboard-check"></i> Review
+                                            </a>
+                                            <a href="{% url 'admin_download_pdf' a.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2" title="Download PDF Report">
+                                                <i class="bi bi-file-earmark-pdf"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state-box">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h3 class="empty-state-title">No Recent Submissions</h3>
+                    <p class="empty-state-text">No self-appraisal submissions recorded yet for this session.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Department Breakdown Bar Chart
+    const deptCanvas = document.getElementById('deptChart');
+    if (deptCanvas) {
+        const deptLabels = {{ dept_labels|safe }};
+        const deptData = {{ dept_data|safe }};
+
+        if (deptData && deptData.length > 0) {
+            new Chart(deptCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: deptLabels,
+                    datasets: [{
+                        label: 'Faculty Members',
+                        data: deptData,
+                        backgroundColor: '#1E3A8A',
+                        borderRadius: 6,
+                        maxBarThickness: 36
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0, font: { size: 10 } },
+                            grid: { color: '#DCE2E5' }
+                        },
+                        x: {
+                            ticks: { font: { size: 10 } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // 2. Appraisal Status Doughnut Chart
+    const statusCanvas = document.getElementById('statusChart');
+    if (statusCanvas) {
+        const statusLabels = {{ status_labels|safe }};
+        const statusData = {{ status_data|safe }};
+
+        new Chart(statusCanvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusData,
+                    backgroundColor: [
+                        '#059669', // Approved (emerald)
+                        '#2563EB', // Submitted (royal blue)
+                        '#D97706', // Under Review (warm amber)
+                        '#EAB308', // Revision (brass)
+                        '#DC2626'  // Rejected (crimson)
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 10, font: { size: 10 } }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

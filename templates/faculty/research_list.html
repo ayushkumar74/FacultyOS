@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Research Publications &bull; FacultyOS Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-green">Category 2 &bull; 30 Pts Max</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">Research Publications &amp; Intellectual Property</h1>
+            <p class="text-muted extra-small mb-0 mt-1">Peer-reviewed journals (SCI/Scopus), international conferences, patents, and book chapters</p>
+        </div>
+        <div>
+            <a href="{% url 'research_create' %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                <i class="bi bi-plus-lg"></i> Log Publication
+            </a>
+        </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="saas-card">
+        <div class="saas-card-header flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <div class="saas-card-title">
+                    <i class="bi bi-book text-success"></i> Research Repository
+                </div>
+                <span class="saas-badge saas-badge-neutral">{{ records.count }} Papers</span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <!-- Search Filter -->
+                <div class="position-relative">
+                    <input type="text" class="saas-input py-1 pe-2 ps-4" style="font-size: 0.78rem; width: 180px;" placeholder="Filter title/author..." data-table-filter="researchTable">
+                    <i class="bi bi-search position-absolute start-0 top-50 translate-middle-y ms-2 text-muted extra-small"></i>
+                </div>
+
+                <!-- Session Selector -->
+                <form method="GET" class="d-flex align-items-center gap-1">
+                    <select name="year" class="saas-select py-1 pe-3" style="font-size: 0.78rem; width: auto;" onchange="this.form.submit()">
+                        <option value="">All Sessions</option>
+                        {% for yr in available_years %}
+                            <option value="{{ yr }}" {% if yr == year_filter %}selected{% endif %}>{{ yr }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+
+        <div class="saas-card-body p-0">
+            {% if records %}
+                <div class="table-responsive">
+                    <table class="saas-table" id="researchTable">
+                        <thead>
+                            <tr>
+                                <th>Paper / Patent Title &amp; Venue</th>
+                                <th>Indexing / Category</th>
+                                <th>Author Role</th>
+                                <th>Date &amp; ISSN/ISBN</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in records %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ r.title }}</div>
+                                        <div class="extra-small text-muted">{{ r.journal_conference_name }}</div>
+                                        {% if r.doi_or_url %}
+                                            <a href="{{ r.doi_or_url }}" target="_blank" class="extra-small text-primary text-decoration-none">
+                                                <i class="bi bi-box-arrow-up-right me-1"></i> DOI Link
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge {% if r.publication_type == 'SCI_SCOPUS' or r.publication_type == 'PATENT' %}saas-badge-green{% elif r.publication_type == 'UGC_CARE' or r.publication_type == 'INT_CONF' %}saas-badge-blue{% else %}saas-badge-neutral{% endif %}">
+                                            {{ r.get_publication_type_display }}
+                                        </span>
+                                        {% if r.indexing_details %}
+                                            <div class="extra-small text-muted mt-1">{{ r.indexing_details }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge saas-badge-neutral">{{ r.author_role }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ r.publication_date|date:"M Y" }}</div>
+                                        {% if r.issn_isbn %}
+                                            <div class="extra-small text-muted font-mono">{{ r.issn_isbn }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'research_update' r.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'research_delete' r.pk %}" class="btn-saas btn-saas-ghost text-danger btn-saas-sm py-1 px-2" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state-box">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-book"></i>
+                    </div>
+                    <h2 class="empty-state-title">No Publications Recorded</h2>
+                    <p class="empty-state-text">
+                        No research articles, conferences, or patents have been recorded for this session. Add your publications to accumulate up to 30 research points.
+                    </p>
+                    <a href="{% url 'research_create' %}" class="btn-saas btn-saas-success btn-saas-sm">
+                        <i class="bi bi-plus-lg"></i> Log Research Paper
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

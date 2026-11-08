@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+
+{% block title %}FacultyOS &bull; Faculty Self-Appraisal &amp; Career Advancement Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-lg-5" style="max-width: 1080px;">
+
+    <!-- ========================================================= -->
+    <!-- SECTION 1: INSTITUTIONAL HERO                             -->
+    <!-- ========================================================= -->
+    <section class="text-center py-4 py-lg-5 mb-5 border-bottom">
+        <div class="mb-3">
+            <span class="badge bg-light text-secondary border px-3 py-1 text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                Institutional Academic Portal
+            </span>
+        </div>
+
+        <h1 class="display-6 fw-bold text-dark mb-3" style="letter-spacing: -0.02em; font-size: 2.1rem;">
+            Faculty Self-Appraisal &amp; Career Advancement Portal
+        </h1>
+
+        <p class="lead text-secondary mx-auto mb-4" style="max-width: 740px; font-size: 1.02rem; line-height: 1.6;">
+            A centralized university portal for documenting academic achievements, computing objective Performance-Based Appraisal Scheme (PBAS) scores, and managing Career Advancement Scheme (CAS) evaluations.
+        </p>
+
+        <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+            <a href="{% url 'login' %}" class="btn-saas btn-saas-primary px-4 py-2" style="font-size: 0.88rem;">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Portal
+            </a>
+            <a href="{% url 'register' %}" class="btn-saas btn-saas-secondary px-4 py-2" style="font-size: 0.88rem;">
+                <i class="bi bi-person-plus me-1"></i> Faculty Registration
+            </a>
+        </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SECTION 2: PLATFORM CAPABILITIES                          -->
+    <!-- ========================================================= -->
+    <section class="mb-5 pb-2">
+        <div class="text-center mb-4">
+            <h2 class="h5 fw-bold text-dark mb-1" style="font-size: 1.25rem;">Platform Capabilities</h2>
+            <p class="text-muted small mb-0">Core academic appraisal and progression modules available across the portal</p>
+        </div>
+
+        <div class="row g-3">
+            <!-- 1. Academic Records -->
+            <div class="col-md-6 col-lg-4">
+                <div class="saas-card h-100 p-3.5 mb-0">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="p-1.5 rounded-2 bg-light border text-primary" style="font-size: 1.1rem; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-journal-text"></i>
+                        </div>
+                        <h3 class="h6 fw-semibold text-dark mb-0" style="font-size: 0.92rem;">Faculty Academic Records</h3>
+                    </div>
+                    <p class="text-secondary extra-small mb-0" style="line-height: 1.55;">
+                        Continuous records of scheduled lecture contact hours, student evaluations, course pass percentages, and syllabus delivery compliance.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 2. Research Publications -->
+            <div class="col-md-6 col-lg-4">
+                <div class="saas-card h-100 p-3.5 mb-0">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="p-1.5 rounded-2 bg-light border text-primary" style="font-size: 1.1rem; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <h3 class="h6 fw-semibold text-dark mb-0" style="font-size: 0.92rem;">Research Publications</h3>
+                    </div>
+                    <p class="text-secondary extra-small mb-0" style="line-height: 1.55;">
+                        Peer-reviewed journal manuscripts (SCI, Scopus, UGC-CARE), conference proceedings, patents, and books with citation indexes.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 3. Workshops & FDPs -->
+            <div class="col-md-6 col-lg-4">
+                <div class="saas-card h-100 p-3.5 mb-0">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="p-1.5 rounded-2 bg-light border text-primary" style="font-size: 1.1rem; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-award"></i>
+                        </div>
+                        <h3 class="h6 fw-semibold text-dark mb-0" style="font-size: 0.92rem;">Workshops &amp; FDPs</h3>
+                    </div>
+                    <p class="text-secondary extra-small mb-0" style="line-height: 1.55;">
+                        Professional development training, AICTE ATAL academies, short-term courses, and pedagogical development programs.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 4. Sponsored Projects & Grants -->
+            <div class="col-md-6 col-lg-6">
+                <div class="saas-card h-100 p-3.5 mb-0">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="p-1.5 rounded-2 bg-light border text-primary" style="font-size: 1.1rem; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-diagram-3"></i>
+                        </div>
+                        <h3 class="h6 fw-semibold text-dark mb-0" style="font-size: 0.92rem;">Sponsored Projects &amp; Grants</h3>
+                    </div>
+                    <p class="text-secondary extra-small mb-0" style="line-height: 1.55;">
+                        Extramural research grants, government funding agencies (DST, SERB, DRDO, CSIR), industrial consultancies, and collaborative sponsorships.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 5. PBAS Scoring & CAS Evaluation -->
+            <div class="col-md-12 col-lg-6">
+                <div class="saas-card h-100 p-3.5 mb-0">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="p-1.5 rounded-2 bg-light border text-primary" style="font-size: 1.1rem; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h3 class="h6 fw-semibold text-dark mb-0" style="font-size: 0.92rem;">PBAS Scoring &amp; CAS Evaluation</h3>
+                    </div>
+                    <p class="text-secondary extra-small mb-0" style="line-height: 1.55;">
+                        Automated 100-point Performance-Based Appraisal Scheme scoring, stage promotion eligibility checks, and administrative committee review.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SECTION 3: INSTITUTIONAL APPRAISAL WORKFLOW               -->
+    <!-- ========================================================= -->
+    <section class="mb-5 pb-2">
+        <div class="saas-card p-4 bg-light border mb-0">
+            <div class="text-center mb-4">
+                <h2 class="h6 fw-bold text-dark text-uppercase mb-1" style="letter-spacing: 0.05em; font-size: 0.88rem;">
+                    Institutional Appraisal Workflow
+                </h2>
+                <p class="text-muted extra-small mb-0">Four structured stages from continuous record maintenance to committee review and promotion</p>
+            </div>
+
+            <div class="row g-3 text-center">
+                <div class="col-sm-6 col-md-3">
+                    <div class="p-3 bg-white border rounded-2 h-100">
+                        <div class="fw-bold text-primary font-mono mb-1" style="font-size: 1.15rem;">01</div>
+                        <div class="fw-semibold text-dark small mb-1">Maintain Records</div>
+                        <div class="text-muted extra-small" style="line-height: 1.45;">Log instructional teaching, published papers, workshops, and grant records across the academic term.</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="p-3 bg-white border rounded-2 h-100">
+                        <div class="fw-bold text-primary font-mono mb-1" style="font-size: 1.15rem;">02</div>
+                        <div class="fw-semibold text-dark small mb-1">Submit Annual Appraisal</div>
+                        <div class="text-muted extra-small" style="line-height: 1.45;">Review computed category scores, complete the self-appraisal declaration, and finalize the submission.</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="p-3 bg-white border rounded-2 h-100">
+                        <div class="fw-bold text-primary font-mono mb-1" style="font-size: 1.15rem;">03</div>
+                        <div class="fw-semibold text-dark small mb-1">Committee Review</div>
+                        <div class="text-muted extra-small" style="line-height: 1.45;">Administrative scrutiny committee audits evidence, enters qualitative remarks, and records evaluations.</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="p-3 bg-white border rounded-2 h-100">
+                        <div class="fw-bold text-primary font-mono mb-1" style="font-size: 1.15rem;">04</div>
+                        <div class="fw-semibold text-dark small mb-1">CAS Progression</div>
+                        <div class="text-muted extra-small" style="line-height: 1.45;">Approved evaluations contribute toward CAS stage promotion readiness and certified institutional dossier export.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SECTION 4: PBAS SCORING FRAMEWORK                         -->
+    <!-- ========================================================= -->
+    <section class="mb-5 pb-2">
+        <div class="text-center mb-4">
+            <h2 class="h5 fw-bold text-dark mb-1" style="font-size: 1.25rem;">PBAS Scoring Framework</h2>
+            <p class="text-muted small mb-0">Standardized 100-point objective evaluation rubric across four core academic categories</p>
+        </div>
+
+        <div class="saas-card overflow-hidden mb-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                    <thead class="table-light">
+                        <tr class="text-muted text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.04em;">
+                            <th class="ps-3 py-2.5">Category Code</th>
+                            <th class="py-2.5">Appraisal Dimension</th>
+                            <th class="py-2.5">Evaluation Scope &amp; Deliverables</th>
+                            <th class="text-end pe-3 py-2.5">Maximum Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ps-3 fw-bold font-mono text-primary">Category 1</td>
+                            <td class="fw-semibold text-dark">Teaching Performance</td>
+                            <td class="text-secondary extra-small">Lecture hours delivery compliance, student feedback index, and course pass percentage</td>
+                            <td class="text-end pe-3 fw-bold font-mono text-dark">40</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-3 fw-bold font-mono text-primary">Category 2</td>
+                            <td class="fw-semibold text-dark">Research &amp; Publications</td>
+                            <td class="text-secondary extra-small">Peer-reviewed papers in SCI/Scopus/UGC-CARE, IEEE/ACM conferences, and patents</td>
+                            <td class="text-end pe-3 fw-bold font-mono text-dark">30</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-3 fw-bold font-mono text-primary">Category 3</td>
+                            <td class="fw-semibold text-dark">Workshops &amp; FDPs</td>
+                            <td class="text-secondary extra-small">Faculty development programs, AICTE ATAL workshops, STTPs, and pedagogical seminars</td>
+                            <td class="text-end pe-3 fw-bold font-mono text-dark">15</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-3 fw-bold font-mono text-primary">Category 4</td>
+                            <td class="fw-semibold text-dark">Sponsored Projects</td>
+                            <td class="text-secondary extra-small">Funded R&amp;D projects, governmental research grants (DST/SERB/DRDO), and consultancies</td>
+                            <td class="text-end pe-3 fw-bold font-mono text-dark">15</td>
+                        </tr>
+                        <tr class="table-light border-top">
+                            <td class="ps-3 fw-bold text-dark" colspan="3">Total Cumulative Annual Score</td>
+                            <td class="text-end pe-3 fw-bold font-mono text-primary" style="font-size: 1rem;">100</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SECTION 5: PLATFORM ROLES                                 -->
+    <!-- ========================================================= -->
+    <section class="mb-5 pb-2">
+        <div class="text-center mb-4">
+            <h2 class="h5 fw-bold text-dark mb-1" style="font-size: 1.25rem;">Platform Roles &amp; Responsibilities</h2>
+            <p class="text-muted small mb-0">Role-based access control ensuring transparent evaluation and data integrity</p>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="saas-card h-100 p-4 mb-0">
+                    <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom">
+                        <div class="p-1.5 rounded-circle bg-light border text-primary" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-person-workspace fs-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="h6 fw-bold mb-0 text-dark">Faculty Member</h3>
+                            <div class="text-muted extra-small">Individual Academic Contributor</div>
+                        </div>
+                    </div>
+                    <ul class="text-secondary extra-small ps-3 mb-0" style="line-height: 1.7;">
+                        <li>Logs instruction hours, syllabus coverage, and student feedback scores.</li>
+                        <li>Records verified research publications, book chapters, and indexed citations.</li>
+                        <li>Uploads completed FDP certifications and sponsored project grants.</li>
+                        <li>Submits annual self-appraisal dossier and monitors CAS progression status.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="saas-card h-100 p-4 mb-0">
+                    <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom">
+                        <div class="p-1.5 rounded-circle bg-light border text-primary" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-shield-lock-fill fs-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="h6 fw-bold mb-0 text-dark">Administrator &amp; Committee</h3>
+                            <div class="text-muted extra-small">Evaluation &amp; Governance Authority</div>
+                        </div>
+                    </div>
+                    <ul class="text-secondary extra-small ps-3 mb-0" style="line-height: 1.7;">
+                        <li>Oversees faculty roster, departmental directories, and institutional data exports.</li>
+                        <li>Reviews submitted annual appraisals in the centralized evaluation queue.</li>
+                        <li>Records official committee scores, qualitative remarks, and approval decisions.</li>
+                        <li>Authorizes Career Advancement Scheme (CAS) promotions and signs off official reports.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SECTION 6: INSTITUTIONAL FOOTER                           -->
+    <!-- ========================================================= -->
+    <footer class="pt-4 border-top text-center text-muted extra-small">
+        <div class="d-flex justify-content-center align-items-center gap-3 mb-2 flex-wrap">
+            <a href="{% url 'home' %}" class="text-muted">Home</a>
+            <span>&bull;</span>
+            <a href="{% url 'login' %}" class="text-muted">Sign In</a>
+            <span>&bull;</span>
+            <a href="{% url 'register' %}" class="text-muted">Faculty Registration</a>
+            <span>&bull;</span>
+            <span>UGC PBAS Scoring Framework</span>
+            <span>&bull;</span>
+            <span>CAS Promotion System</span>
+        </div>
+        <div class="text-secondary" style="font-size: 0.76rem;">
+            &copy; 2026 FacultyOS &bull; Institutional Academic Administration &amp; Faculty Performance Platform.
+        </div>
+    </footer>
+
+</div>
+{% endblock %}

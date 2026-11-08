@@ -1,0 +1,452 @@
+{% extends 'base.html' %}
+
+{% block title %}Faculty Workspace &bull; FacultyOS Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <!-- WELCOME & SESSION HEADER -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue">Faculty Workspace</span>
+                <span class="saas-badge saas-badge-neutral font-mono">{{ profile.employee_id }}</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">
+                Welcome, {{ profile.user.get_full_name|default:profile.user.username }}
+            </h1>
+            <p class="text-muted extra-small mb-0 mt-1">
+                {{ profile.designation }} &bull; Department of {{ profile.get_department_display }} &bull; {{ profile.highest_qualification }}
+            </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- Academic Session Selector -->
+            <form method="GET" class="d-flex align-items-center gap-1 bg-white px-2 rounded-2 border shadow-xs" style="height: 34px;">
+                <label for="id_session_year" class="extra-small text-muted fw-semibold d-none d-sm-inline mb-0">Session:</label>
+                <select name="year" id="id_session_year" class="saas-select border-0 py-0 pe-3 fw-semibold text-primary" style="font-size: 0.8rem; width: auto; background-color: transparent;" onchange="this.form.submit()">
+                    {% for yr in available_years %}
+                        <option value="{{ yr }}" {% if yr == current_year %}selected{% endif %}>Academic Session {{ yr }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <!-- CAS Promotion Status -->
+            <span class="saas-badge {% if profile.promotion_status == 'Eligible for Promotion' or profile.promotion_status == 'Promoted' %}saas-badge-green{% elif profile.promotion_status == 'Under Review' %}saas-badge-amber{% else %}saas-badge-neutral{% endif %} px-3" style="height: 34px; display: inline-flex; align-items: center;">
+                <i class="bi bi-award-fill me-1"></i> CAS: {{ profile.promotion_status }}
+            </span>
+        </div>
+    </div>
+
+    <!-- ACTIVE APPRAISAL STATUS CALLOUT -->
+    {% if active_appraisal %}
+        <div class="saas-card mb-4" style="border-left: 4px solid {% if active_appraisal.status == 'APPROVED' %}var(--emerald-600){% elif active_appraisal.status == 'REJECTED' %}var(--rose-600){% elif active_appraisal.status == 'REVISION_REQUESTED' %}var(--amber-500){% else %}var(--brand-blue-600){% endif %};">
+            <div class="saas-card-body p-3 p-md-4">
+                <div class="row align-items-center g-3">
+                    <div class="col-lg-7">
+                        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                            <span class="fw-bold text-dark fs-6">Annual Self-Appraisal (Session {{ active_appraisal.academic_year }})</span>
+                            {% if active_appraisal.status == 'APPROVED' %}
+                                <span class="saas-badge saas-badge-green"><i class="bi bi-check-circle-fill"></i> Approved</span>
+                            {% elif active_appraisal.status == 'REJECTED' %}
+                                <span class="saas-badge saas-badge-rose"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                            {% elif active_appraisal.status == 'REVISION_REQUESTED' %}
+                                <span class="saas-badge saas-badge-amber"><i class="bi bi-arrow-repeat"></i> Revision Requested</span>
+                            {% else %}
+                                <span class="saas-badge saas-badge-blue"><i class="bi bi-hourglass-split"></i> {{ active_appraisal.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+
+                        <p class="text-muted extra-small mb-2">
+                            Submitted on {{ active_appraisal.submission_date|date:"F d, Y - h:i A" }}
+                            {% if active_appraisal.reviewed_at %} &bull; Evaluated by Committee on {{ active_appraisal.reviewed_at|date:"F d, Y" }}{% endif %}
+                        </p>
+
+                        {% if active_appraisal.admin_remarks %}
+                            <div class="p-2 px-3 bg-light rounded-2 border extra-small text-dark mb-0">
+                                <strong><i class="bi bi-chat-left-quote text-primary me-1"></i> Committee Remarks:</strong> {{ active_appraisal.admin_remarks }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-lg-5 text-lg-end">
+                        <div class="d-inline-block text-center p-2 px-3 bg-light rounded-2 border me-2 mb-2">
+                            <div class="extra-small text-muted text-uppercase fw-semibold">Evaluated Score</div>
+                            <div class="fs-5 fw-bold text-primary">{{ active_appraisal.total_score }} <span class="extra-small text-muted">/ 100</span></div>
+                            <span class="saas-badge saas-badge-blue mt-1">{{ active_appraisal.performance_grade }}</span>
+                        </div>
+
+                        <div class="mt-2">
+                            <a href="{% url 'appraisal_detail' active_appraisal.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm me-1">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                            <a href="{% url 'download_appraisal_pdf' active_appraisal.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm me-1">
+                                <i class="bi bi-file-earmark-pdf text-danger"></i> Download PDF
+                            </a>
+                            {% if active_appraisal.status == 'REVISION_REQUESTED' %}
+                                <a href="{% url 'submit_appraisal' %}" class="btn-saas btn-saas-primary btn-saas-sm mt-1">
+                                    <i class="bi bi-pencil-square"></i> Resubmit
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Submission Open Banner -->
+        <div class="saas-card mb-4 bg-white border-primary" style="border-color: rgba(37,99,235,0.3) !important;">
+            <div class="saas-card-body p-3 p-md-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <span class="saas-badge saas-badge-blue mb-1">Open for Session {{ current_year }}</span>
+                    <h2 class="h6 fw-bold mb-1 text-dark">
+                        <i class="bi bi-send-check text-primary me-1"></i> Annual Self-Appraisal Submission Active
+                    </h2>
+                    <p class="text-muted extra-small mb-0">
+                        Log teaching hours, research citations, workshop certificates, and grants before submitting for committee review.
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'submit_appraisal' %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                        <i class="bi bi-send-check"></i> Review &amp; Submit Appraisal
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- 4 PERFORMANCE METRIC RECORD CARDS (Clean Minimal Style) -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Teaching Courses -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="metric-card">
+                <div class="metric-label">Teaching Courses</div>
+                <div class="metric-value-row">
+                    <div class="metric-value" data-counter-target="{{ teaching_count }}">{{ teaching_count }}</div>
+                    <div class="metric-icon-wrap">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top extra-small">
+                    <span class="text-muted">Courses Logged</span>
+                    <a href="{% url 'teaching_create' %}" class="fw-semibold text-primary"><i class="bi bi-plus-circle me-1"></i>Log</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Publications -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="metric-card">
+                <div class="metric-label">Publications</div>
+                <div class="metric-value-row">
+                    <div class="metric-value" data-counter-target="{{ research_count }}">{{ research_count }}</div>
+                    <div class="metric-icon-wrap">
+                        <i class="bi bi-book"></i>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top extra-small">
+                    <span class="text-muted">Indexed Papers</span>
+                    <a href="{% url 'research_create' %}" class="fw-semibold text-primary"><i class="bi bi-plus-circle me-1"></i>Log</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Workshops & FDPs -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="metric-card">
+                <div class="metric-label">Workshops &amp; FDPs</div>
+                <div class="metric-value-row">
+                    <div class="metric-value" data-counter-target="{{ workshop_count }}">{{ workshop_count }}</div>
+                    <div class="metric-icon-wrap">
+                        <i class="bi bi-award"></i>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top extra-small">
+                    <span class="text-muted">Training Programs</span>
+                    <a href="{% url 'workshop_create' %}" class="fw-semibold text-primary"><i class="bi bi-plus-circle me-1"></i>Log</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Projects & Grants -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="metric-card">
+                <div class="metric-label">Projects &amp; Grants</div>
+                <div class="metric-value-row">
+                    <div class="metric-value" data-counter-target="{{ project_count }}">{{ project_count }}</div>
+                    <div class="metric-icon-wrap">
+                        <i class="bi bi-diagram-3"></i>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top extra-small">
+                    <span class="text-muted">R&amp;D Projects</span>
+                    <a href="{% url 'project_create' %}" class="fw-semibold text-primary"><i class="bi bi-plus-circle me-1"></i>Log</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ZERO RECORDS EMPTY STATE -->
+    {% if teaching_count == 0 and research_count == 0 and workshop_count == 0 and project_count == 0 %}
+        <div class="saas-card empty-state-box mb-4">
+            <div class="empty-state-icon">
+                <i class="bi bi-clipboard2-plus"></i>
+            </div>
+            <h2 class="empty-state-title">No Performance Records Logged for Session {{ current_year }}</h2>
+            <p class="empty-state-text">
+                Your evaluated performance score is currently 0.00 / 100. Start by recording your active courses, research publications, or training programs.
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a href="{% url 'teaching_create' %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                    <i class="bi bi-plus-lg"></i> Log Teaching Record
+                </a>
+                <a href="{% url 'research_create' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                    <i class="bi bi-plus-lg"></i> Log Publication
+                </a>
+                <a href="{% url 'workshop_create' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                    <i class="bi bi-plus-lg"></i> Log Workshop
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- SCORING BREAKDOWN & VISUALIZATION -->
+    <div class="row g-3 mb-4">
+        <!-- 100-Point Category Breakdown -->
+        <div class="col-lg-7">
+            <div class="saas-card h-100 mb-0">
+                <div class="saas-card-header">
+                    <div class="saas-card-title">
+                        <i class="bi bi-calculator"></i> PBAS 100-Point Score Accumulator
+                    </div>
+                    <span class="saas-badge saas-badge-neutral">Session {{ current_year }}</span>
+                </div>
+                <div class="saas-card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+                        <div>
+                            <span class="text-muted extra-small text-uppercase fw-semibold">Calculated Score</span>
+                            <div class="d-flex align-items-baseline gap-1">
+                                <span class="display-6 fw-bold text-primary" data-counter-target="{{ score_data.total_score }}" data-counter-float="true">{{ score_data.total_score }}</span>
+                                <span class="fs-6 text-muted">/ 100.0</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-muted extra-small text-uppercase fw-semibold d-block">Performance Tier</span>
+                            <span class="score-badge score-badge-verygood mt-1">{{ score_data.performance_grade }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Category 1: Teaching (Max 40) -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between extra-small mb-1">
+                            <span class="fw-semibold text-secondary"><i class="bi bi-journal-text text-primary me-1"></i> 1. Teaching Performance (Max 40.0)</span>
+                            <span class="fw-bold text-primary">{{ score_data.teaching_score }} / 40.0 pts</span>
+                        </div>
+                        <div class="metric-progress">
+                            <div class="metric-progress-fill" style="width: {% widthratio score_data.teaching_score 40 100 %}%; background-color: var(--brand-blue-600);"></div>
+                        </div>
+                    </div>
+
+                    <!-- Category 2: Research (Max 30) -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between extra-small mb-1">
+                            <span class="fw-semibold text-secondary"><i class="bi bi-book text-success me-1"></i> 2. Research &amp; Publications (Max 30.0)</span>
+                            <span class="fw-bold text-success">{{ score_data.research_score }} / 30.0 pts</span>
+                        </div>
+                        <div class="metric-progress">
+                            <div class="metric-progress-fill" style="width: {% widthratio score_data.research_score 30 100 %}%; background-color: var(--emerald-600);"></div>
+                        </div>
+                    </div>
+
+                    <!-- Category 3: Workshops (Max 15) -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between extra-small mb-1">
+                            <span class="fw-semibold text-secondary"><i class="bi bi-award text-warning me-1"></i> 3. Workshops &amp; FDPs (Max 15.0)</span>
+                            <span class="fw-bold text-warning">{{ score_data.workshop_score }} / 15.0 pts</span>
+                        </div>
+                        <div class="metric-progress">
+                            <div class="metric-progress-fill" style="width: {% widthratio score_data.workshop_score 15 100 %}%; background-color: var(--amber-500);"></div>
+                        </div>
+                    </div>
+
+                    <!-- Category 4: Projects (Max 15) -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between extra-small mb-1">
+                            <span class="fw-semibold text-secondary"><i class="bi bi-diagram-3 me-1" style="color:var(--violet-600);"></i> 4. Sponsored Projects (Max 15.0)</span>
+                            <span class="fw-bold" style="color:var(--violet-600);">{{ score_data.project_score }} / 15.0 pts</span>
+                        </div>
+                        <div class="metric-progress">
+                            <div class="metric-progress-fill" style="width: {% widthratio score_data.project_score 15 100 %}%; background-color: var(--violet-600);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart.js Visualization & Quick Actions -->
+        <div class="col-lg-5">
+            <div class="saas-card h-100 mb-0">
+                <div class="saas-card-header">
+                    <div class="saas-card-title">
+                        <i class="bi bi-pie-chart"></i> Score Distribution
+                    </div>
+                    <span class="extra-small text-muted">Visual Ratio</span>
+                </div>
+                <div class="saas-card-body d-flex flex-column align-items-center justify-content-center">
+                    {% if score_data.total_score > 0 %}
+                        <div style="width: 200px; height: 200px; position: relative;">
+                            <canvas id="facultyScoreChart"></canvas>
+                        </div>
+
+                        <div class="d-flex gap-3 justify-content-center flex-wrap mt-3 extra-small text-muted">
+                            <span><i class="bi bi-circle-fill text-primary me-1"></i> Teaching</span>
+                            <span><i class="bi bi-circle-fill text-success me-1"></i> Research</span>
+                            <span><i class="bi bi-circle-fill text-warning me-1"></i> Workshops</span>
+                            <span><i class="bi bi-circle-fill me-1" style="color:var(--violet-600);"></i> Projects</span>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 px-3 my-auto">
+                            <div class="empty-state-icon mb-2">
+                                <i class="bi bi-pie-chart"></i>
+                            </div>
+                            <h3 class="empty-state-title fs-6 fw-bold mb-1">No Performance Data Available</h3>
+                            <p class="empty-state-text extra-small text-muted mb-0" style="max-width: 250px; margin: 0 auto;">
+                                Add teaching hours, publications, or workshops to display your score distribution chart.
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    <div class="w-100 mt-4 pt-3 border-top text-center">
+                        <a href="{% url 'submit_appraisal' %}" class="btn-saas btn-saas-primary w-100 py-2">
+                            <i class="bi bi-send-check"></i> Submit Annual Appraisal
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Category Records Overview -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="saas-card mb-0">
+                <div class="saas-card-header">
+                    <div class="saas-card-title">
+                        <i class="bi bi-folder2-open text-primary"></i> Performance Categories &bull; Session {{ current_year }} Quick Access
+                    </div>
+                    <span class="extra-small text-muted">Auditable Records</span>
+                </div>
+                <div class="saas-card-body p-3">
+                    <div class="row g-3">
+                        <div class="col-md-6 col-lg-3">
+                            <div class="p-3 bg-light rounded-2 border h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <span class="fw-bold text-dark small"><i class="bi bi-journal-text text-primary me-1"></i> Teaching Records</span>
+                                        <span class="saas-badge saas-badge-blue">{{ teaching_count }} Logged</span>
+                                    </div>
+                                    <p class="text-muted extra-small mb-2">Instructional hours, syllabus compliance, and student ratings.</p>
+                                </div>
+                                <div class="d-flex gap-2 pt-2 border-top">
+                                    <a href="{% url 'teaching_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm w-100 text-center">View Records</a>
+                                    <a href="{% url 'teaching_create' %}" class="btn-saas btn-saas-primary btn-saas-sm px-2" title="Log Course"><i class="bi bi-plus-lg"></i></a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3">
+                            <div class="p-3 bg-light rounded-2 border h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <span class="fw-bold text-dark small"><i class="bi bi-book text-success me-1"></i> Publications</span>
+                                        <span class="saas-badge saas-badge-green">{{ research_count }} Logged</span>
+                                    </div>
+                                    <p class="text-muted extra-small mb-2">SCI/Scopus journals, peer-reviewed conferences, and patents.</p>
+                                </div>
+                                <div class="d-flex gap-2 pt-2 border-top">
+                                    <a href="{% url 'research_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm w-100 text-center">View Records</a>
+                                    <a href="{% url 'research_create' %}" class="btn-saas btn-saas-primary btn-saas-sm px-2" title="Log Paper"><i class="bi bi-plus-lg"></i></a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3">
+                            <div class="p-3 bg-light rounded-2 border h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <span class="fw-bold text-dark small"><i class="bi bi-award text-primary me-1"></i> Workshops &amp; FDPs</span>
+                                        <span class="saas-badge saas-badge-neutral">{{ workshop_count }} Logged</span>
+                                    </div>
+                                    <p class="text-muted extra-small mb-2">AICTE ATAL pedagogy, STTPs, and technical coordinator roles.</p>
+                                </div>
+                                <div class="d-flex gap-2 pt-2 border-top">
+                                    <a href="{% url 'workshop_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm w-100 text-center">View Records</a>
+                                    <a href="{% url 'workshop_create' %}" class="btn-saas btn-saas-primary btn-saas-sm px-2" title="Log Workshop"><i class="bi bi-plus-lg"></i></a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3">
+                            <div class="p-3 bg-light rounded-2 border h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <span class="fw-bold text-dark small"><i class="bi bi-diagram-3 text-primary me-1"></i> Sponsored Grants</span>
+                                        <span class="saas-badge saas-badge-neutral">{{ project_count }} Logged</span>
+                                    </div>
+                                    <p class="text-muted extra-small mb-2">Extramural funding, industrial consultancy, and lab MODROBS.</p>
+                                </div>
+                                <div class="d-flex gap-2 pt-2 border-top">
+                                    <a href="{% url 'project_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm w-100 text-center">View Records</a>
+                                    <a href="{% url 'project_create' %}" class="btn-saas btn-saas-primary btn-saas-sm px-2" title="Log Project"><i class="bi bi-plus-lg"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Score Distribution Donut Chart Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('facultyScoreChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Teaching (40)', 'Research (30)', 'Workshops (15)', 'Projects (15)'],
+                    datasets: [{
+                        data: [
+                            {{ score_data.teaching_score|default:0 }},
+                            {{ score_data.research_score|default:0 }},
+                            {{ score_data.workshop_score|default:0 }},
+                            {{ score_data.project_score|default:0 }}
+                        ],
+                        backgroundColor: ['#1E3A8A', '#15803D', '#B45309', '#475569'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '72%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ' + context.raw + ' pts';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

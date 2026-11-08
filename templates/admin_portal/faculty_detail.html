@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+
+{% block title %}Faculty 360° Profile &bull; {{ profile.employee_id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue">Faculty 360° Portfolio</span>
+                <span class="saas-badge saas-badge-neutral font-mono">{{ profile.employee_id }}</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">{{ profile.user.get_full_name|default:profile.user.username }}</h1>
+            <p class="text-muted extra-small mb-0 mt-1">
+                {{ profile.designation }} &bull; Department of {{ profile.get_department_display }} &bull; {{ profile.highest_qualification }}
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'admin_faculty_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                <i class="bi bi-arrow-left"></i> Back to Directory
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Profile & CAS Promotion Status Card -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-body p-4">
+            <div class="row align-items-center g-3">
+                <div class="col-md-7">
+                    <div class="row g-2 extra-small">
+                        <div class="col-sm-6">
+                            <span class="text-muted">Highest Qualification:</span>
+                            <strong class="text-dark">{{ profile.highest_qualification }}</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted">Specialization:</span>
+                            <strong class="text-dark">{{ profile.specialization }}</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted">Date of Joining:</span>
+                            <strong class="text-dark">{{ profile.date_of_joining|date:"d M Y" }}</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted">Teaching Experience:</span>
+                            <strong class="text-dark">{{ profile.experience_years }} Years</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted">Institutional Email:</span>
+                            <strong class="text-dark">{{ profile.user.email }}</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted">Official Phone:</span>
+                            <strong class="text-dark">{{ profile.contact_number|default:"N/A" }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Quick Promotion Status Update Form -->
+                <div class="col-md-5 border-start ps-md-4">
+                    <form method="POST" action="{% url 'admin_update_promotion' profile.pk %}" class="p-3 bg-light rounded-2 border">
+                        {% csrf_token %}
+                        <label class="saas-form-label mb-1">
+                            <i class="bi bi-award text-primary me-1"></i> Update CAS Promotion Status
+                        </label>
+                        <div class="d-flex gap-2">
+                            <select name="promotion_status" class="saas-select py-1">
+                                <option value="Not Applied" {% if profile.promotion_status == 'Not Applied' %}selected{% endif %}>Not Applied</option>
+                                <option value="Under Review" {% if profile.promotion_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                                <option value="Eligible for Promotion" {% if profile.promotion_status == 'Eligible for Promotion' %}selected{% endif %}>Eligible for Promotion</option>
+                                <option value="Promoted" {% if profile.promotion_status == 'Promoted' %}selected{% endif %}>Promoted</option>
+                                <option value="Not Eligible" {% if profile.promotion_status == 'Not Eligible' %}selected{% endif %}>Not Eligible</option>
+                            </select>
+                            <button type="submit" class="btn-saas btn-saas-primary btn-saas-sm">Update</button>
+                        </div>
+                        <div class="extra-small text-muted mt-2">
+                            Current Status: <span class="saas-badge saas-badge-neutral">{{ profile.promotion_status }}</span>
+                            {% if profile.promotion_eligible_date %}(Updated: {{ profile.promotion_eligible_date|date:"d M Y" }}){% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs for Performance Records -->
+    <ul class="nav nav-pills mb-3 gap-2" id="facultyRecordTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active btn-saas btn-saas-secondary btn-saas-sm py-1 px-3" id="appraisals-tab" data-bs-toggle="pill" data-bs-target="#appraisals" type="button" role="tab">
+                <i class="bi bi-file-earmark-check me-1"></i> Appraisals ({{ appraisals.count }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link btn-saas btn-saas-secondary btn-saas-sm py-1 px-3" id="teaching-tab" data-bs-toggle="pill" data-bs-target="#teaching" type="button" role="tab">
+                <i class="bi bi-journal-text me-1"></i> Teaching ({{ teaching_records.count }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link btn-saas btn-saas-secondary btn-saas-sm py-1 px-3" id="research-tab" data-bs-toggle="pill" data-bs-target="#research" type="button" role="tab">
+                <i class="bi bi-book me-1"></i> Research ({{ research_records.count }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link btn-saas btn-saas-secondary btn-saas-sm py-1 px-3" id="workshops-tab" data-bs-toggle="pill" data-bs-target="#workshops" type="button" role="tab">
+                <i class="bi bi-award me-1"></i> Workshops ({{ workshop_records.count }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link btn-saas btn-saas-secondary btn-saas-sm py-1 px-3" id="projects-tab" data-bs-toggle="pill" data-bs-target="#projects" type="button" role="tab">
+                <i class="bi bi-diagram-3 me-1"></i> Projects ({{ project_records.count }})
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content Panes -->
+    <div class="tab-content saas-card p-0" id="facultyRecordTabContent">
+        <!-- 1. Appraisals Tab -->
+        <div class="tab-pane fade show active p-3" id="appraisals" role="tabpanel">
+            {% if appraisals %}
+                <div class="table-responsive">
+                    <table class="saas-table">
+                        <thead>
+                            <tr>
+                                <th>Academic Session</th>
+                                <th>Submitted On</th>
+                                <th>Evaluated Score</th>
+                                <th>Status</th>
+                                <th>CAS Recommendation</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in appraisals %}
+                                <tr>
+                                    <td><strong>{{ a.academic_year }}</strong></td>
+                                    <td>{{ a.submission_date|date:"d M Y" }}</td>
+                                    <td>
+                                        <span class="score-badge score-badge-verygood">{{ a.total_score }} / 100</span>
+                                        <span class="extra-small text-muted ms-1">{{ a.performance_grade }}</span>
+                                    </td>
+                                    <td>
+                                        {% if a.status == 'APPROVED' %}
+                                            <span class="saas-badge saas-badge-green">Approved</span>
+                                        {% elif a.status == 'REJECTED' %}
+                                            <span class="saas-badge saas-badge-rose">Rejected</span>
+                                        {% elif a.status == 'REVISION_REQUESTED' %}
+                                            <span class="saas-badge saas-badge-amber">Revision</span>
+                                        {% else %}
+                                            <span class="saas-badge saas-badge-blue">{{ a.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><span class="saas-badge saas-badge-neutral">{{ a.promotion_recommendation }}</span></td>
+                                    <td class="text-end">
+                                        <a href="{% url 'admin_appraisal_review' a.pk %}" class="btn-saas btn-saas-primary btn-saas-sm py-1 px-2">Review</a>
+                                        <a href="{% url 'admin_download_pdf' a.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2">PDF</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-4 text-center text-muted extra-small">No annual appraisal submissions logged.</div>
+            {% endif %}
+        </div>
+
+        <!-- 2. Teaching Tab -->
+        <div class="tab-pane fade p-3" id="teaching" role="tabpanel">
+            {% if teaching_records %}
+                <div class="table-responsive">
+                    <table class="saas-table">
+                        <thead>
+                            <tr>
+                                <th>Subject Code &amp; Title</th>
+                                <th>Session</th>
+                                <th>Hours</th>
+                                <th>Compliance</th>
+                                <th>Pass %</th>
+                                <th>Feedback</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in teaching_records %}
+                                <tr>
+                                    <td><strong>{{ t.subject_code }}</strong> &bull; {{ t.subject_name }}</td>
+                                    <td>{{ t.academic_year }} ({{ t.semester }})</td>
+                                    <td>{{ t.conducted_hours }} / {{ t.scheduled_hours }} hrs</td>
+                                    <td><span class="saas-badge saas-badge-green">{{ t.compliance_rate }}%</span></td>
+                                    <td>{{ t.pass_percentage }}%</td>
+                                    <td><i class="bi bi-star-fill text-warning"></i> {{ t.student_feedback_score }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-4 text-center text-muted extra-small">No teaching records found.</div>
+            {% endif %}
+        </div>
+
+        <!-- 3. Research Tab -->
+        <div class="tab-pane fade p-3" id="research" role="tabpanel">
+            {% if research_records %}
+                <div class="table-responsive">
+                    <table class="saas-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Role</th>
+                                <th>Venue</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in research_records %}
+                                <tr>
+                                    <td><strong>{{ r.title }}</strong></td>
+                                    <td><span class="saas-badge saas-badge-blue">{{ r.get_publication_type_display }}</span></td>
+                                    <td>{{ r.author_role }}</td>
+                                    <td>{{ r.journal_conference_name }}</td>
+                                    <td>{{ r.publication_date|date:"M Y" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-4 text-center text-muted extra-small">No research publications found.</div>
+            {% endif %}
+        </div>
+
+        <!-- 4. Workshops Tab -->
+        <div class="tab-pane fade p-3" id="workshops" role="tabpanel">
+            {% if workshop_records %}
+                <div class="table-responsive">
+                    <table class="saas-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Role</th>
+                                <th>Institution</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for w in workshop_records %}
+                                <tr>
+                                    <td><strong>{{ w.title }}</strong></td>
+                                    <td>{{ w.get_program_type_display }}</td>
+                                    <td>{{ w.role }}</td>
+                                    <td>{{ w.organizing_institution }}</td>
+                                    <td>{{ w.duration_days }} Days</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-4 text-center text-muted extra-small">No workshop records found.</div>
+            {% endif %}
+        </div>
+
+        <!-- 5. Projects Tab -->
+        <div class="tab-pane fade p-3" id="projects" role="tabpanel">
+            {% if project_records %}
+                <div class="table-responsive">
+                    <table class="saas-table">
+                        <thead>
+                            <tr>
+                                <th>Project Title</th>
+                                <th>Funding Agency</th>
+                                <th>Grant Amount</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in project_records %}
+                                <tr>
+                                    <td><strong>{{ p.title }}</strong></td>
+                                    <td>{{ p.funding_agency }}</td>
+                                    <td class="text-success font-mono">₹ {{ p.grant_amount|floatformat:2 }}</td>
+                                    <td>{{ p.get_role_display }}</td>
+                                    <td><span class="saas-badge saas-badge-neutral">{{ p.status }}</span></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-4 text-center text-muted extra-small">No sponsored projects recorded.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

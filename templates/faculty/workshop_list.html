@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Workshops & FDPs &bull; FacultyOS Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-amber">Category 3 &bull; 15 Pts Max</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">Workshops, FDPs &amp; Professional Training</h1>
+            <p class="text-muted extra-small mb-0 mt-1">Faculty development programs, STTPs, technical workshops, and pedagogical training</p>
+        </div>
+        <div>
+            <a href="{% url 'workshop_create' %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                <i class="bi bi-plus-lg"></i> Log Workshop / FDP
+            </a>
+        </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="saas-card">
+        <div class="saas-card-header flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <div class="saas-card-title">
+                    <i class="bi bi-award text-warning"></i> Training &amp; Pedagogy Log
+                </div>
+                <span class="saas-badge saas-badge-neutral">{{ records.count }} Programs</span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <!-- Search Filter -->
+                <div class="position-relative">
+                    <input type="text" class="saas-input py-1 pe-2 ps-4" style="font-size: 0.78rem; width: 180px;" placeholder="Filter program..." data-table-filter="workshopTable">
+                    <i class="bi bi-search position-absolute start-0 top-50 translate-middle-y ms-2 text-muted extra-small"></i>
+                </div>
+
+                <!-- Session Selector -->
+                <form method="GET" class="d-flex align-items-center gap-1">
+                    <select name="year" class="saas-select py-1 pe-3" style="font-size: 0.78rem; width: auto;" onchange="this.form.submit()">
+                        <option value="">All Sessions</option>
+                        {% for yr in available_years %}
+                            <option value="{{ yr }}" {% if yr == year_filter %}selected{% endif %}>{{ yr }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+
+        <div class="saas-card-body p-0">
+            {% if records %}
+                <div class="table-responsive">
+                    <table class="saas-table" id="workshopTable">
+                        <thead>
+                            <tr>
+                                <th>Program Title &amp; Host Institution</th>
+                                <th>Category</th>
+                                <th>Faculty Role</th>
+                                <th>Dates &amp; Duration</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in records %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ r.title }}</div>
+                                        <div class="extra-small text-muted">{{ r.organizing_institution }}</div>
+                                        {% if r.certificate_link %}
+                                            <a href="{{ r.certificate_link }}" target="_blank" class="extra-small text-primary text-decoration-none">
+                                                <i class="bi bi-award me-1"></i> View Certificate
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge saas-badge-blue">{{ r.get_program_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="saas-badge {% if r.role == 'Resource Person' %}saas-badge-green{% elif r.role == 'Coordinator' %}saas-badge-amber{% else %}saas-badge-neutral{% endif %}">
+                                            {{ r.role }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-dark">{{ r.duration_days }} Days</strong>
+                                        <div class="extra-small text-muted">{{ r.start_date|date:"d M" }} - {{ r.end_date|date:"d M Y" }}</div>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'workshop_update' r.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'workshop_delete' r.pk %}" class="btn-saas btn-saas-ghost text-danger btn-saas-sm py-1 px-2" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state-box">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-award"></i>
+                    </div>
+                    <h2 class="empty-state-title">No Training Records Logged</h2>
+                    <p class="empty-state-text">
+                        No workshops, FDPs, or STTPs logged for this academic session. Log attended or coordinated sessions to earn up to 15 points.
+                    </p>
+                    <a href="{% url 'workshop_create' %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                        <i class="bi bi-plus-lg"></i> Log Workshop Record
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

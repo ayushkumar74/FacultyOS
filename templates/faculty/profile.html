@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Faculty Dossier &bull; FacultyOS Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue">Official Record</span>
+                <span class="saas-badge saas-badge-neutral font-mono">{{ profile.employee_id }}</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">Faculty Profile &amp; Service Dossier</h1>
+            <p class="text-muted extra-small mb-0 mt-1">Institutional academic affiliation and verified Career Advancement Scheme (CAS) records</p>
+        </div>
+        <div>
+            <a href="{% url 'faculty_profile_update' %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                <i class="bi bi-pencil-square"></i> Edit Profile Information
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Profile Identity Card -->
+        <div class="col-lg-4">
+            <div class="saas-card text-center p-4">
+                <div class="user-avatar-initials mx-auto mb-3" style="width: 72px; height: 72px; font-size: 1.8rem;">
+                    {% if profile.user.first_name %}{{ profile.user.first_name|slice:":1" }}{% else %}{{ profile.user.username|slice:":1"|upper }}{% endif %}
+                </div>
+                <h2 class="h5 fw-bold mb-1">{{ profile.user.get_full_name|default:profile.user.username }}</h2>
+                <div class="saas-badge saas-badge-neutral font-mono mb-2">{{ profile.employee_id }}</div>
+                <p class="text-muted extra-small mb-3">
+                    {{ profile.designation }}<br/>
+                    <strong class="text-dark">{{ profile.get_department_display }}</strong>
+                </p>
+
+                <div class="p-3 bg-light rounded-2 border text-start extra-small">
+                    <div class="mb-2">
+                        <span class="text-muted d-block">CAS Promotion Status:</span>
+                        <span class="saas-badge {% if profile.promotion_status == 'Eligible for Promotion' or profile.promotion_status == 'Promoted' %}saas-badge-green{% elif profile.promotion_status == 'Under Review' %}saas-badge-amber{% else %}saas-badge-neutral{% endif %} mt-1">
+                            {{ profile.promotion_status }}
+                        </span>
+                    </div>
+                    {% if profile.promotion_eligible_date %}
+                    <div class="mb-2">
+                        <span class="text-muted d-block">Eligibility Marked:</span>
+                        <strong class="text-dark">{{ profile.promotion_eligible_date|date:"F d, Y" }}</strong>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <span class="text-muted d-block">Record Created:</span>
+                        <strong class="text-dark">{{ profile.created_at|date:"F d, Y" }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Structured Specifications (Notion Style) -->
+        <div class="col-lg-8">
+            <div class="saas-card">
+                <div class="saas-card-header">
+                    <div class="saas-card-title">
+                        <i class="bi bi-person-vcard"></i> Academic &amp; Institutional Credentials
+                    </div>
+                    <span class="extra-small text-muted">Auditable Dossier</span>
+                </div>
+                <div class="saas-card-body p-0">
+                    <table class="saas-table">
+                        <tbody>
+                            <tr>
+                                <td style="width: 35%;" class="fw-semibold text-muted">Full Legal Name</td>
+                                <td class="fw-bold text-dark">{{ profile.user.get_full_name|default:profile.user.username }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Employee / Faculty ID</td>
+                                <td><code class="text-dark">{{ profile.employee_id }}</code></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Academic Department</td>
+                                <td>{{ profile.get_department_display }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Current Academic Designation</td>
+                                <td class="fw-semibold text-dark">{{ profile.designation }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Highest Academic Qualification</td>
+                                <td>{{ profile.highest_qualification }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Research Specialization</td>
+                                <td>{{ profile.specialization }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Institution Date of Joining</td>
+                                <td>{{ profile.date_of_joining|date:"F d, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Teaching Experience</td>
+                                <td>{{ profile.experience_years }} Years</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Institutional Email</td>
+                                <td><a href="mailto:{{ profile.user.email }}">{{ profile.user.email }}</a></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Official Contact Number</td>
+                                <td>{{ profile.contact_number|default:"Not Provided" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

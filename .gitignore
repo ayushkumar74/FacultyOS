@@ -1,0 +1,111 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Django media and static collected root
+media/
+staticfiles/
+
+# Logs and databases
+*.log
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Development / Scratch / Temporary scripts
+scratch/
+capture_browser_screenshots.ps1
+
+# Historical submission packages and backups
+backups/
+submission_package/
+FacultyOS_Final_Submission/
+FacultyOS_Final_Submission_Phase14/
+*.zip
+
+# Historical phase screenshot archives (unified screenshots kept in screenshots/)
+auth_redesign_screenshots/
+final_refinement_screenshots/
+phase10_screenshots/
+phase6_2_screenshots/
+phase7_screenshots/
+phase8_audit_screenshots/
+phase_b_screenshots/
+product_redesign_screenshots/
+redesigned_screenshots/
+screenshots_phase6/
+visual_audit_screenshots/
+static/images/phase*
+static/images/final_refinement/
+static/images/screenshots/
+
+# Loose root screenshots (superseded by screenshots/)
+admin_appraisals_queue.png
+admin_appraisal_review.png
+admin_dashboard.png
+admin_dashboard_mobile.png
+admin_faculty_detail.png
+admin_faculty_directory.png
+change_password.png
+faculty_appraisal_detail.png
+faculty_appraisal_submit.png
+faculty_dashboard.png
+faculty_dashboard_mobile.png
+faculty_profile.png
+faculty_teaching.png
+home_screen.png
+login_screen.png
+register_screen.png
+
+# Editor / IDE settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+desktop.ini

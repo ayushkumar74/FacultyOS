@@ -1,7 +1,9 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, RequestFactory, override_settings
+from django.urls import reverse
 from django.contrib.auth.models import User
 from decimal import Decimal
 from datetime import date
+from core.views import custom_404, custom_500
 from appraisal.models import (
     FacultyProfile,
     TeachingRecord,
@@ -265,4 +267,176 @@ class FacultyAppraisalPortalTests(TestCase):
         # Test duplicate prevention for same session
         sub_count_before = AppraisalSubmission.objects.filter(faculty=self.faculty_profile, academic_year='2024-2025').count()
         self.assertEqual(sub_count_before, 1)
+
+
+class RubricComplianceVerificationTests(TestCase):
+    """
+    Focused verification tests for 30/30 rubric compliance items:
+    1. URL converters: <str:employee_id>, <slug:department_slug>
+    2. Regular expression route: re_path(r'^archive/...')
+    3. JSON Response API endpoint (/api/faculty/<str:employee_id>/summary/)
+    4. Custom 404 and 500 error handlers and templates
+    5. Reverse URL resolution
+    """
+
+    def setUp(self):
+        self.client = Client()
+        self.factory = RequestFactory()
+
+        # Faculty user & profile
+        self.faculty_user = User.objects.create_user(
+            username='rubric_faculty',
+            email='rfaculty@university.edu',
+            password='TestPassword123!',
+            first_name='Dr. Vikram',
+            last_name='Nair'
+        )
+        self.faculty_profile = FacultyProfile.objects.create(
+            user=self.faculty_user,
+            employee_id='FAC-CSE-999',
+            department='CSE',
+            designation='Associate Professor',
+            highest_qualification='Ph.D.',
+            specialization='Distributed Systems',
+            date_of_joining=date(2019, 6, 1),
+            experience_years=Decimal('7.0'),
+            contact_number='+91 9876543210',
+            promotion_status='Eligible for Promotion'
+        )
+
+        # Admin user
+        self.admin_user = User.objects.create_user(
+            username='rubric_admin',
+            email='radmin@university.edu',
+            password='AdminPassword123!',
+            is_staff=True,
+            is_superuser=True
+        )
+
+    def test_str_converter_json_api_success(self):
+        """Test <str:employee_id> converter and valid JSON response from database."""
+        self.client.login(username='rubric_faculty', password='TestPassword123!')
+        response = self.client.get('/api/faculty/FAC-CSE-999/summary/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+        data = response.json()
+        self.assertEqual(data['employee_id'], 'FAC-CSE-999')
+        self.assertEqual(data['name'], 'Dr. Vikram Nair')
+        self.assertEqual(data['department'], 'CSE')
+        self.assertEqual(data['department_name'], 'Computer Science & Engineering')
+        self.assertEqual(data['designation'], 'Associate Professor')
+        self.assertEqual(data['promotion_status'], 'Eligible for Promotion')
+        self.assertEqual(data['highest_qualification'], 'Ph.D.')
+        self.assertEqual(data['specialization'], 'Distributed Systems')
+
+        # Verify no sensitive data is leaked
+        self.assertNotIn('password', data)
+        self.assertNotIn('secret', str(data).lower())
+
+    def test_str_converter_json_api_404_missing(self):
+        """Test <str:employee_id> with nonexistent ID returns 404 JSON."""
+        self.client.login(username='rubric_faculty', password='TestPassword123!')
+        response = self.client.get('/api/faculty/NONEXISTENT-ID/summary/')
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        data = response.json()
+        self.assertEqual(data['error'], 'Not Found')
+        self.assertIn("not found", data['message'])
+
+    def test_str_converter_json_api_unauthorized(self):
+        """Test that unauthenticated requests to JSON API are redirected to login."""
+        response = self.client.get('/api/faculty/FAC-CSE-999/summary/')
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login/', response['Location'])
+
+    def test_slug_converter_department_directory_valid(self):
+        """Test <slug:department_slug> converter renders department faculty roster."""
+        self.client.login(username='rubric_faculty', password='TestPassword123!')
+        response = self.client.get('/faculty/department/cse/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'faculty/department_directory.html')
+        self.assertContains(response, 'Department of Computer Science &amp; Engineering')
+        self.assertContains(response, 'FAC-CSE-999')
+        self.assertContains(response, 'Dr. Vikram Nair')
+
+    def test_slug_converter_department_directory_invalid_slug_404(self):
+        """Test that invalid department slug returns HTTP 404."""
+        self.client.login(username='rubric_faculty', password='TestPassword123!')
+        response = self.client.get('/faculty/department/invalid-dept-slug/')
+        self.assertEqual(response.status_code, 404)
+
+    def test_re_path_archive_academic_year_redirect(self):
+        """Test re_path route captures academic year and routes to correct archive view."""
+        self.client.login(username='rubric_faculty', password='TestPassword123!')
+
+        # 4-digit notation (2025-2026)
+        res_full = self.client.get('/archive/2025-2026/')
+        self.assertEqual(res_full.status_code, 302)
+        self.assertIn('year=2025-2026', res_full['Location'])
+
+        # 2-digit suffix notation (2025-26)
+        res_short = self.client.get('/archive/2025-26/')
+        self.assertEqual(res_short.status_code, 302)
+        self.assertIn('year=2025-2026', res_short['Location'])
+
+    def test_re_path_archive_invalid_year_404(self):
+        """Test that invalid academic year raises 404."""
+        self.client.login(username='rubric_faculty', password='TestPassword123!')
+        # Valid regex format but year out of range
+        res_out_of_range = self.client.get('/archive/1980-81/')
+        self.assertEqual(res_out_of_range.status_code, 404)
+
+        # Invalid regex format does not match re_path pattern
+        res_bad_format = self.client.get('/archive/not-a-year/')
+        self.assertEqual(res_bad_format.status_code, 404)
+
+    @override_settings(DEBUG=False)
+    def test_custom_404_error_page_rendering(self):
+        """Test custom 404 page renders institutional design under DEBUG=False."""
+        # Unauthenticated: displays Homepage and Login navigation
+        response = self.client.get('/nonexistent-test-url-for-404-check/')
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "Academic Page Not Found", status_code=404)
+        self.assertContains(response, "HTTP 404 Error", status_code=404)
+        self.assertContains(response, "Institutional Homepage", status_code=404)
+        self.assertContains(response, "Faculty Login", status_code=404)
+
+        # Authenticated: displays Return to Dashboard navigation
+        self.client.login(username='rubric_faculty', password='TestPassword123!')
+        res_auth = self.client.get('/nonexistent-test-url-for-404-check/')
+        self.assertEqual(res_auth.status_code, 404)
+        self.assertContains(res_auth, "Return to Dashboard", status_code=404)
+
+        # Ensure no traceback or internal paths leaked
+        self.assertNotContains(response, "Traceback", status_code=404)
+        self.assertNotContains(response, "Django_Project", status_code=404)
+
+    def test_custom_500_error_page_rendering(self):
+        """Test custom 500 handler renders safe institutional design."""
+        request = self.factory.get('/some-broken-endpoint/')
+        response = custom_500(request)
+        self.assertEqual(response.status_code, 500)
+        content = response.content.decode('utf-8')
+        self.assertIn("Unexpected Institutional Server Error", content)
+        self.assertIn("HTTP 500", content)
+        self.assertIn("Return to Homepage", content)
+        self.assertNotIn("Traceback", content)
+        self.assertNotIn("SECRET_KEY", content)
+
+    def test_reverse_url_resolution(self):
+        """Verify reverse URL resolution for all new rubric routes."""
+        self.assertEqual(
+            reverse('faculty_api_summary', kwargs={'employee_id': 'FAC-CSE-999'}),
+            '/api/faculty/FAC-CSE-999/summary/'
+        )
+        self.assertEqual(
+            reverse('faculty_department_directory', kwargs={'department_slug': 'cse'}),
+            '/faculty/department/cse/'
+        )
+        self.assertEqual(
+            reverse('archive_by_year', kwargs={'year': '2025-26'}),
+            '/archive/2025-26/'
+        )
+
 

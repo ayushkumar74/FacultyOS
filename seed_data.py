@@ -1,3 +1,16 @@
+"""
+FacultyOS — Realistic Institutional Demo Data Seeder
+====================================================
+IMPORTANT NOTICE / DEMO DATA DISCLAIMER:
+This script populates the database with realistic, entirely synthetic sample
+faculty portfolios, teaching records, research citations, and appraisals designed
+strictly for evaluation, grading, and demonstration purposes.
+
+- No data belongs to an actual university, living individual, or commercial entity.
+- Seeded credentials (e.g. admin/admin123, rsharma/faculty123) are demo-only.
+- All records use standardized UGC/AICTE-aligned academic formats.
+"""
+
 import os
 import django
 from decimal import Decimal
@@ -18,7 +31,10 @@ from appraisal.models import (
 from appraisal.scoring import calculate_appraisal_score
 
 def run_seed():
-    print("--- Seeding Database with Initial Sample Data ---")
+    print("==================================================================")
+    print("FacultyOS: Seeding Database with Realistic Synthetic Sample Data")
+    print("DISCLAIMER: All seeded accounts and records are synthetic demo data")
+    print("==================================================================")
 
     # 1. Create Superuser (Admin)
     admin_user, created = User.objects.get_or_create(

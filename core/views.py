@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
+from django.db import transaction
 from .forms import LoginForm, FacultyRegistrationForm
 from appraisal.models import FacultyProfile
 
@@ -72,25 +73,28 @@ def register_faculty_view(request):
     if request.method == 'POST':
         form = FacultyRegistrationForm(request.POST)
         if form.is_valid():
-            # Create the Django User
-            username = form.cleaned_data['username']
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            first_name = form.cleaned_data['first_name']
-            last_name = form.cleaned_data['last_name']
+            with transaction.atomic():
+                # Create the Django User (strictly non-admin)
+                username = form.cleaned_data['username']
+                email = form.cleaned_data['email']
+                password = form.cleaned_data['password']
+                first_name = form.cleaned_data['first_name']
+                last_name = form.cleaned_data['last_name']
 
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-                first_name=first_name,
-                last_name=last_name
-            )
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                    is_staff=False,
+                    is_superuser=False
+                )
 
-            # Create the FacultyProfile
-            faculty_profile = form.save(commit=False)
-            faculty_profile.user = user
-            faculty_profile.save()
+                # Create the FacultyProfile
+                faculty_profile = form.save(commit=False)
+                faculty_profile.user = user
+                faculty_profile.save()
 
             messages.success(request, "Account created successfully! You can now log in.")
             return redirect('login')
@@ -136,4 +140,19 @@ def change_password_view(request):
         form = PasswordChangeForm(user=request.user)
 
     return render(request, 'core/change_password.html', {'form': form})
+
+
+def custom_404(request, exception=None):
+    """
+    Custom 404 Page Not Found view with institutional styling.
+    """
+    return render(request, '404.html', status=404)
+
+
+def custom_500(request):
+    """
+    Custom 500 Internal Server Error view with institutional styling.
+    """
+    return render(request, '500.html', status=500)
+
 

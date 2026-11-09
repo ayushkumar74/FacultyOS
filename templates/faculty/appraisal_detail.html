@@ -51,6 +51,9 @@
                         {% else %}
                             Committee Evaluation: <em>Pending Administrative Review</em>
                         {% endif %}
+                        {% if appraisal.promotion_recommendation %}
+                            <br/><span class="text-muted">CAS Recommendation:</span> <strong class="text-primary">{{ appraisal.promotion_recommendation }}</strong>
+                        {% endif %}
                     </p>
                 </div>
                 <div class="col-md-5 text-md-end">

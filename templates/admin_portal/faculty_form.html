@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_edit %}Edit Faculty Dossier &bull; {{ profile.employee_id }}{% else %}Onboard Faculty Member &bull; FacultyOS Admin{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-3" style="max-width: 920px;">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue">Administration</span>
+                <span class="saas-badge saas-badge-neutral">{% if is_edit %}Dossier Management{% else %}Faculty Onboarding{% endif %}</span>
+            </div>
+            <h1 class="h5 fw-bold mb-0">{% if is_edit %}Update Faculty Dossier ({{ profile.employee_id }}){% else %}Onboard New Faculty Member{% endif %}</h1>
+            <p class="text-muted extra-small mb-0 mt-1">{% if is_edit %}Modify faculty personal details, department affiliation, and academic credentials{% else %}Register a new academic staff member with portal credentials and institutional profile{% endif %}</p>
+        </div>
+        <div>
+            {% if is_edit %}
+                <a href="{% url 'admin_faculty_detail' profile.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                    <i class="bi bi-arrow-left"></i> Back to Dossier
+                </a>
+            {% else %}
+                <a href="{% url 'admin_faculty_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                    <i class="bi bi-arrow-left"></i> Back to Directory
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Form Card -->
+    <div class="saas-card">
+        <div class="saas-card-body p-4">
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger py-2 px-3 extra-small rounded-2 mb-4" role="alert">
+                        <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Please correct the errors below:</div>
+                        <ul class="mb-0 ps-3">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <!-- Section 1: Personal & Authentication Identity -->
+                <div class="form-section-group">
+                    <div class="form-section-title"><i class="bi bi-person text-primary me-1"></i> Personal &amp; Account Identity</div>
+                    <div class="form-section-desc">Faculty full name, institutional email address, and authentication credentials</div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="saas-form-label">First Name <span class="text-danger">*</span></label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Last Name <span class="text-danger">*</span></label>
+                            {{ form.last_name }}
+                        </div>
+                        {% if not is_edit %}
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Username <span class="text-danger">*</span></label>
+                            {{ form.username }}
+                            <div class="saas-form-helper">Unique login username for faculty access</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Temporary Password <span class="text-danger">*</span></label>
+                            {{ form.temporary_password }}
+                            <div class="saas-form-helper">Initial temporary password for first sign-in</div>
+                        </div>
+                        {% endif %}
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Institutional Email <span class="text-danger">*</span></label>
+                            {{ form.email }}
+                            <div class="saas-form-helper">Official communications address</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Contact Phone</label>
+                            {{ form.contact_number }}
+                            <div class="saas-form-helper">Mobile or official extension</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Institutional Appointment & Department -->
+                <div class="form-section-group">
+                    <div class="form-section-title"><i class="bi bi-mortarboard text-primary me-1"></i> Academic Appointment &amp; Department</div>
+                    <div class="form-section-desc">Departmental affiliation, designation, and unique employee identification number</div>
+
+                    <div class="row g-3">
+                        {% if not is_edit %}
+                        <div class="col-md-4">
+                            <label class="saas-form-label">Employee ID <span class="text-danger">*</span></label>
+                            {{ form.employee_id }}
+                            <div class="saas-form-helper">Official institutional identifier (e.g. FAC-CSE-005)</div>
+                        </div>
+                        {% endif %}
+                        <div class="col-md-{% if not is_edit %}4{% else %}6{% endif %}">
+                            <label class="saas-form-label">Department <span class="text-danger">*</span></label>
+                            {{ form.department }}
+                        </div>
+                        <div class="col-md-{% if not is_edit %}4{% else %}6{% endif %}">
+                            <label class="saas-form-label">Current Designation <span class="text-danger">*</span></label>
+                            {{ form.designation }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Highest Qualification <span class="text-danger">*</span></label>
+                            {{ form.highest_qualification }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Primary Specialization</label>
+                            {{ form.specialization }}
+                            <div class="saas-form-helper">Core research domain or pedagogical focus</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Date of Joining</label>
+                            {{ form.date_of_joining }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Total Teaching Experience (Years)</label>
+                            {{ form.experience_years }}
+                        </div>
+                        {% if not is_edit and form.promotion_status %}
+                        <div class="col-md-6">
+                            <label class="saas-form-label">Initial CAS Status</label>
+                            {{ form.promotion_status }}
+                        </div>
+                        {% endif %}
+                        <div class="col-12">
+                            <label class="saas-form-label">Official Campus Address</label>
+                            {{ form.address }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                    {% if is_edit %}
+                        <a href="{% url 'admin_faculty_detail' profile.pk %}" class="btn-saas btn-saas-secondary">Cancel</a>
+                    {% else %}
+                        <a href="{% url 'admin_faculty_list' %}" class="btn-saas btn-saas-secondary">Cancel</a>
+                    {% endif %}
+                    <button type="submit" class="btn-saas btn-saas-primary">
+                        <i class="bi bi-check2-circle"></i> {% if is_edit %}Save Dossier Changes{% else %}Complete Faculty Onboarding{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
@@ -39,12 +39,19 @@ urlpatterns = [
     # Admin Portal Routes
     path('admin-portal/dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin-portal/faculty/', views.admin_faculty_list, name='admin_faculty_list'),
+    path('admin-portal/faculty/add/', views.admin_faculty_create, name='admin_faculty_create'),
     path('admin-portal/faculty/export-csv/', views.admin_export_faculty_csv, name='admin_export_faculty_csv'),
     path('admin-portal/faculty/<int:pk>/', views.admin_faculty_detail, name='admin_faculty_detail'),
+    path('admin-portal/faculty/<int:pk>/edit/', views.admin_faculty_edit, name='admin_faculty_edit'),
     path('admin-portal/faculty/<int:pk>/promotion/', views.admin_update_promotion, name='admin_update_promotion'),
     path('admin-portal/appraisals/', views.admin_appraisals_list, name='admin_appraisals_list'),
     path('admin-portal/appraisals/export-csv/', views.admin_export_appraisals_csv, name='admin_export_appraisals_csv'),
     path('admin-portal/appraisals/<int:pk>/review/', views.admin_appraisal_review, name='admin_appraisal_review'),
     path('admin-portal/appraisals/<int:pk>/pdf/', views.admin_download_pdf, name='admin_download_pdf'),
+
+    # API & Rubric Compliance Routes (str converter, slug converter, re_path)
+    path('api/faculty/<str:employee_id>/summary/', views.faculty_api_summary, name='faculty_api_summary'),
+    path('faculty/department/<slug:department_slug>/', views.faculty_department_directory, name='faculty_department_directory'),
+    re_path(r'^archive/(?P<year>\d{4}-\d{2,4})/$', views.archive_by_year, name='archive_by_year'),
 ]
 

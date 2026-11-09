@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.models import User
 from .models import (
     FacultyProfile,
     TeachingRecord,
@@ -231,4 +232,80 @@ class AdminAppraisalReviewForm(forms.ModelForm):
                 'placeholder': 'Enter review feedback, evaluation committee notes, commendations or revision instructions...'
             }),
         }
+
+
+class AdminFacultyCreateForm(forms.ModelForm):
+    first_name = forms.CharField(
+        max_length=50,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Anand'})
+    )
+    last_name = forms.CharField(
+        max_length=50,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Verma'})
+    )
+    username = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. averma'})
+    )
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'a.verma@university.edu'})
+    )
+    temporary_password = forms.CharField(
+        required=True,
+        initial='faculty123',
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Initial Temporary Password'}),
+        help_text="Initial temporary password for first login (default: faculty123)"
+    )
+
+    class Meta:
+        model = FacultyProfile
+        fields = [
+            'employee_id',
+            'department',
+            'designation',
+            'highest_qualification',
+            'specialization',
+            'date_of_joining',
+            'experience_years',
+            'contact_number',
+            'promotion_status',
+            'address',
+        ]
+        widgets = {
+            'employee_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. FAC-CSE-005'}),
+            'department': forms.Select(attrs={'class': 'form-select'}),
+            'designation': forms.Select(attrs={'class': 'form-select'}),
+            'highest_qualification': forms.Select(attrs={'class': 'form-select'}),
+            'specialization': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Machine Learning & Computer Vision'}),
+            'date_of_joining': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'experience_years': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'placeholder': '0.0'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+91 9876543210'}),
+            'promotion_status': forms.Select(attrs={'class': 'form-select'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Campus quarters or address'}),
+        }
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '').strip()
+        reserved = {'admin', 'administrator', 'root', 'superuser', 'dean', 'hod', 'facultyos', 'system'}
+        if username.lower() in reserved:
+            raise forms.ValidationError("This username is reserved for system administration.")
+        if User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError("This username is already taken. Please choose another.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email', '').strip()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("A user with this email address already exists.")
+        return email
+
+    def clean_employee_id(self):
+        emp_id = self.cleaned_data.get('employee_id', '').strip().upper()
+        if FacultyProfile.objects.filter(employee_id__iexact=emp_id).exists():
+            raise forms.ValidationError("A faculty member with this Employee ID is already registered.")
+        return emp_id
 

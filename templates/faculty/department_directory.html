@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Department of {{ department_name }} &bull; FacultyOS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue">{{ department_code }}</span>
+                <span class="saas-badge saas-badge-neutral">{{ total_faculty }} Registered Faculty</span>
+            </div>
+            <h1 class="h4 fw-bold mb-0 text-dark">Department of {{ department_name }}</h1>
+            <p class="text-muted extra-small mb-0 mt-1">Official roster of departmental faculty, academic ranks, qualifications, and CAS promotion status</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            {% if request.user.is_staff or request.user.is_superuser %}
+            <a href="{% url 'admin_faculty_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                <i class="bi bi-arrow-left"></i> Full Directory
+            </a>
+            {% else %}
+            <a href="{% url 'faculty_dashboard' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                <i class="bi bi-arrow-left"></i> My Dashboard
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Department Selector Pills -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-body p-3">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="extra-small fw-semibold text-muted text-uppercase me-2" style="letter-spacing: 0.04em;">Filter By Department:</span>
+                {% for code, name in all_departments %}
+                <a href="{% url 'faculty_department_directory' department_slug=code|lower %}" 
+                   class="btn-saas btn-saas-sm {% if department_code == code %}btn-saas-primary{% else %}btn-saas-secondary{% endif %}"
+                   style="font-size: 0.75rem; padding: 0.25rem 0.65rem;">
+                    {{ code }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Faculty Roster Table -->
+    <div class="saas-card">
+        <div class="saas-card-header d-flex justify-content-between align-items-center p-3">
+            <div>
+                <span class="fw-semibold text-dark fs-6">Academic Faculty Roster &bull; {{ department_code }}</span>
+                <span class="text-muted extra-small d-block">Verified records from the university academic database</span>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="saas-table mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">#</th>
+                        <th style="width: 14%;">Employee ID</th>
+                        <th style="width: 22%;">Faculty Name &amp; Email</th>
+                        <th style="width: 18%;">Designation</th>
+                        <th style="width: 15%;">Qualification</th>
+                        <th style="width: 14%;">Specialization</th>
+                        <th style="width: 12%;" class="text-center">CAS Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in profiles %}
+                    <tr>
+                        <td class="text-muted extra-small">{{ forloop.counter }}</td>
+                        <td>
+                            <code class="fw-semibold text-primary extra-small">{{ p.employee_id }}</code>
+                        </td>
+                        <td>
+                            <div class="fw-medium text-dark">{{ p.user.get_full_name|default:p.user.username }}</div>
+                            <div class="text-muted extra-small">{{ p.user.email }}</div>
+                        </td>
+                        <td>
+                            <span class="fw-medium text-dark extra-small">{{ p.designation }}</span>
+                        </td>
+                        <td>
+                            <span class="text-muted extra-small">{{ p.highest_qualification }}</span>
+                        </td>
+                        <td>
+                            <span class="text-muted extra-small">{{ p.specialization|default:"-" }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if p.promotion_status == 'Eligible for Promotion' or p.promotion_status == 'Promoted' %}
+                                <span class="saas-badge saas-badge-success">{{ p.promotion_status }}</span>
+                            {% elif p.promotion_status == 'Under Review' %}
+                                <span class="saas-badge saas-badge-warning">{{ p.promotion_status }}</span>
+                            {% else %}
+                                <span class="saas-badge saas-badge-neutral">{{ p.promotion_status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="bi bi-people text-muted fs-1 d-block mb-2"></i>
+                            <h6 class="fw-semibold text-dark mb-1">No Faculty Members Found</h6>
+                            <p class="text-muted extra-small mb-0">No faculty members are currently registered in the {{ department_name }} department.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

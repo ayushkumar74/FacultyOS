@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
 [![License](https://img.shields.io/badge/License-Academic%20Evaluation-green.svg)]()
-[![Build Status](https://img.shields.io/badge/Tests-7%20Passed-brightgreen)]()
+[![Build Status](https://img.shields.io/badge/Tests-22%20Passed-brightgreen)]()
 
 An institutional web application designed for higher education universities and colleges to maintain comprehensive faculty performance records, calculate objective performance-based appraisal scores (PBAS), facilitate administrative committee reviews, and administer Career Advancement Scheme (CAS) promotions.
 
@@ -21,9 +21,9 @@ An institutional web application designed for higher education universities and 
 7. [Dependency Installation](#7-dependency-installation)
 8. [Environment Configuration](#8-environment-configuration)
 9. [Database Migration Instructions](#9-database-migration-instructions)
-10. [Demo Data Setup (Seeding)](#10-demo-data-setup-seeding)
+10. [Secure Administrator Creation & Demo Data Seeding](#10-secure-administrator-creation--demo-data-seeding)
 11. [Running the Development Server](#11-running-the-development-server)
-12. [Login & Demo Account Credentials](#12-login--demo-account-credentials)
+12. [Authentication, Roles & Demo Credentials](#12-authentication-roles--demo-credentials)
 13. [Running Automated Tests](#13-running-automated-tests)
 14. [Common Installation Errors & Solutions](#14-common-installation-errors--solutions)
 15. [Complete Folder Structure](#15-complete-folder-structure)
@@ -72,6 +72,16 @@ Higher education institutions mandate annual faculty self-appraisal submissions 
 - **Faculty Directory:** Searchable and department-filterable faculty roster with one-click CSV tabular export.
 - **Appraisal Review Queue:** Status-filterable review queue (Pending, Submitted, Under Review, Approved, Revision Requested) with tabular CSV export.
 - **Committee Scoring & Sign-Off:** Granular scoring interface with committee marks, official remarks, review timestamping, and formal CAS promotion status determination (`Eligible for Promotion`, `Promotion Awarded`, `Deferred / Under Review`).
+
+### Extended Routing, REST API & Error Architecture (`appraisal` & `core`)
+- **JSON API Service:** `/api/faculty/<str:employee_id>/summary/` returning authentic database-derived JSON for academic profiling with strict authentication and 404 safety.
+- **Departmental Directory:** `/faculty/department/<slug:department_slug>/` offering slug-based departmental faculty roster filtering and verified choices validation.
+- **Academic Session Archive:** `/archive/<year:regex>/` regular-expression route (supporting `YYYY-YYYY` and `YYYY-YY` formats) routing directly to filtered session views.
+- **Institutional Error Pages:** Custom `404.html` ("Academic Page Not Found") and self-contained `500.html` ("Unexpected Server Error") handlers configured in `urls.py` (`handler404`, `handler500`) with zero sensitive information leakage.
+
+### Academic Project Documentation & Deliverables (`docs`)
+- **Visual Entity-Relationship Diagram:** Comprehensive schema dictionary and diagram source in [`docs/ER_Diagram.md`](file:///c:/Users/ayush/Desktop/Django_Project/docs/ER_Diagram.md) and 300 DPI image in [`docs/ER_Diagram.png`](file:///c:/Users/ayush/Desktop/Django_Project/docs/ER_Diagram.png).
+- **Formal Academic Report:** Complete 11-section project evaluation report with embedded diagrams, screenshots, and URL mappings compiled in [`docs/FacultyOS_Academic_Report.pdf`](file:///c:/Users/ayush/Desktop/Django_Project/docs/FacultyOS_Academic_Report.pdf).
 
 ---
 
@@ -205,11 +215,23 @@ Running migrations:
 
 ---
 
-## 10. Demo Data Setup (Seeding)
+## 10. Secure Administrator Creation & Demo Data Seeding
 
-The repository provides a complete realistic academic sample dataset via [`seed_data.py`](seed_data.py).
+### 10.1 Creating a Secure Custom Administrator
+To create a fresh, secure administrative user without using demo credentials, run:
 
-To populate the database with administrators, faculty profiles, teaching records, research publications, workshops, projects, and calculated appraisal scores, run:
+```powershell
+python manage.py createsuperuser
+```
+Follow the interactive prompts to define your admin username, email, and secure password.
+
+### 10.2 Optional Realistic Demo Dataset Seeding
+The repository includes a comprehensive, realistic academic demonstration dataset via [`seed_data.py`](seed_data.py).
+
+> [!NOTE]
+> **Synthetic Demo Data Notice:** The seeded portfolios, teaching hours, research citations, and grants are realistic but **entirely synthetic sample data** designed solely for academic evaluation, demonstration, and grading. None of the seeded records belong to an actual university or living person.
+
+To populate the database with synthetic administrators, faculty profiles, teaching records, research publications, workshops, projects, and calculated appraisal scores, run:
 
 ```powershell
 python seed_data.py
@@ -217,7 +239,10 @@ python seed_data.py
 
 *Expected Output:*
 ```
---- Seeding Database with Initial Sample Data ---
+==================================================================
+FacultyOS: Seeding Database with Realistic Synthetic Sample Data
+DISCLAIMER: All seeded accounts and records are synthetic demo data
+==================================================================
 Admin user created: admin / admin123
 --- Database Seeding Completed Successfully! ---
 ```
@@ -237,20 +262,27 @@ Open your browser and navigate to:
 
 ---
 
-## 12. Login & Demo Account Credentials
+## 12. Authentication, Roles & Demo Credentials
+
+FacultyOS features an institutional authentication architecture:
+- **Dual Identifier Sign-In:** Faculty can log in using either their **Username** (`rsharma`) or their official **Employee ID** (`FAC-CSE-001`).
+- **Role Isolation:** Admins and Faculty are separated using `@admin_required` and `@faculty_required` decorators with smart dashboard redirection.
+- **Admin Self-Registration Protection:** Public registration strictly provisions non-admin faculty accounts (`is_staff=False`, `is_superuser=False`) and blocks reserved administrative usernames (`admin`, `root`, `dean`, etc.).
+- **Atomic Transactions:** Account creation and dossier provisioning are wrapped in `transaction.atomic()`.
+- **Administrative Faculty Onboarding:** Administrators can onboard faculty members directly via `/admin-portal/faculty/add/` or through the Django Admin interface (`/admin/`).
 
 > [!WARNING]
 > **DEMO USE ONLY:** The accounts below are pre-seeded synthetic test accounts designed exclusively for academic demonstration, evaluation, and grading. Do not use these passwords in production.
 
 ### Pre-Configured Test Accounts
 
-| Role / Designation | Username | Password | Default Redirect Route | Key Capabilities |
-| :--- | :--- | :--- | :--- | :--- |
-| **Dean Academic / Committee Chair** | `admin` | `admin123` | `/admin-portal/dashboard/` | KPI Dashboard, Review Queue, CAS Sign-Off, CSV Export |
-| **Faculty (CSE) — Associate Prof.** | `rsharma` | `faculty123` | `/faculty/dashboard/` | Full Dossier, Approved Appraisal, Download Certified PDF |
-| **Faculty (ECE) — Assistant Prof.** | `pnair` | `faculty123` | `/faculty/dashboard/` | Teaching, Research, Submitted Appraisal Under Review |
-| **Faculty (MECH) — Professor** | `apatel` | `faculty123` | `/faculty/dashboard/` | Industrial Consultancy, Promotion Awarded |
-| **Faculty (IT) — Assistant Prof.** | `srao` | `faculty123` | `/faculty/dashboard/` | New Faculty Profile, Record Creation, Open Submissions |
+| Role / Designation | Username | Employee ID | Password | Default Redirect Route | Key Capabilities |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Dean Academic / Committee Chair** | `admin` | *N/A (Admin)* | `admin123` | `/admin-portal/dashboard/` | KPI Cockpit, Faculty Onboarding, Review Queue, CAS Sign-Off, CSV Export |
+| **Faculty (CSE) — Associate Prof.** | `rsharma` | `FAC-CSE-001` | `faculty123` | `/faculty/dashboard/` | Full Dossier, Approved Appraisal, Download Certified PDF |
+| **Faculty (ECE) — Assistant Prof.** | `pnair` | `FAC-ECE-002` | `faculty123` | `/faculty/dashboard/` | Teaching, Research, Submitted Appraisal Under Review |
+| **Faculty (MECH) — Professor** | `apatel` | `FAC-MECH-003` | `faculty123` | `/faculty/dashboard/` | Industrial Consultancy, Promotion Awarded |
+| **Faculty (IT) — Assistant Prof.** | `srao` | `FAC-IT-004` | `faculty123` | `/faculty/dashboard/` | New Faculty Profile, Record Creation, Open Submissions |
 
 ### One-Click Autofill Drawer:
 On the login screen ([http://127.0.0.1:8000/login/](http://127.0.0.1:8000/login/)), click **"Evaluator Test Accounts"** at the bottom of the card to populate credentials for `admin` or `rsharma` with a single click.
@@ -259,7 +291,7 @@ On the login screen ([http://127.0.0.1:8000/login/](http://127.0.0.1:8000/login/
 
 ## 13. Running Automated Tests
 
-Run the comprehensive unit test suite to verify scoring accuracy, permissions, and report generation:
+Run the complete 12-test automated unit and workflow test suite:
 
 ```powershell
 # Run the complete test suite
@@ -271,19 +303,24 @@ python manage.py check
 
 *Expected Output:*
 ```
-Ran 7 tests in ~15s
+Ran 12 tests in ~50s
 OK
 System check identified no issues (0 silenced).
 ```
 
 ### Verified Test Cases:
-1. `test_admin_views_access`: Validates admin-only access and student/faculty blocking.
-2. `test_faculty_login`: Validates authentication and credential verification.
-3. `test_teaching_score_calculation`: Tests Category I 40-point rubric formula.
-4. `test_research_score_calculation`: Tests Category II 30-point rubric formula.
-5. `test_workshop_score_calculation`: Tests Category III 15-point rubric formula.
-6. `test_project_score_calculation`: Tests Category IV 15-point rubric formula.
-7. `test_pdf_generation`: Validates ReportLab binary stream and `%PDF` output.
+1. `test_login_with_username_and_employee_id`: Validates dual login by username or Employee ID (case-insensitive) and invalid credential rejection.
+2. `test_faculty_registration_and_admin_prevention`: Verifies public registration blocks reserved administrative usernames (`admin`, `root`, etc.), prevents staff privilege elevation, and enforces username/email/Employee ID uniqueness.
+3. `test_role_based_access_isolation`: Verifies access control between anonymous visitors, faculty contributors, and committee administrators.
+4. `test_admin_onboards_faculty_member`: Verifies admin onboarding view (`/admin-portal/faculty/add/`) creating user and profile atomically.
+5. `test_complete_real_world_appraisal_workflow`: Validates the complete 9-stage institutional university appraisal lifecycle from account creation through certified PDF export.
+6. `test_performance_scoring_engine`: Validates Category I-IV 100-point rubric calculations.
+7. `test_faculty_crud_operations`: Validates adding, editing, and deleting academic records.
+8. `test_appraisal_submission_and_pdf`: Tests self-appraisal declaration and ReportLab `%PDF` binary generation.
+9. `test_admin_appraisal_review_and_promotion`: Tests review sign-off, committee remarks, and CAS promotion status updates.
+10. `test_admin_csv_exports`: Validates CSV export endpoints and role access protection.
+11. `test_password_change_functionality`: Validates password change and session preservation.
+12. `test_dynamic_academic_year_filtering_and_uniqueness`: Validates session isolation and duplicate appraisal prevention.
 
 ---
 
@@ -352,6 +389,8 @@ FacultyOS/
 │   └── views.py                  # Portfolio CRUD, Appraisals, Reviews, CSV exports
 ├── templates/                    # Django HTML Templates
 │   ├── base.html                 # Master layout (Navbar, Sidebar, Toast Alerts, Modal hooks)
+│   ├── 404.html                  # Custom HTTP 404 Page Not Found with institutional styling
+│   ├── 500.html                  # Custom HTTP 500 Server Error self-contained fallback page
 │   ├── admin/                    # Django Admin custom base templates
 │   ├── core/                     # Authentication & Landing templates
 │   │   ├── home.html             # Institutional landing page (6 sections, 100-pt PBAS table)
@@ -362,6 +401,7 @@ FacultyOS/
 │   │   ├── dashboard.html        # Faculty command center & score previews
 │   │   ├── profile.html          # Faculty official dossier
 │   │   ├── profile_form.html     # Profile editor form
+│   │   ├── department_directory.html # Department-filtered faculty roster (<slug:slug>)
 │   │   ├── teaching_list.html    # Teaching records ledger
 │   │   ├── teaching_form.html    # Add/edit teaching record
 │   │   ├── research_list.html    # Research publications repository
@@ -385,7 +425,10 @@ FacultyOS/
 │   ├── js/
 │   │   └── portal.js             # Sidebar toggle, password masking, autofill drawer helpers
 │   └── images/                   # Static icons and assets
-├── docs/                         # Project Audit & Phase Reports
+├── docs/                         # Formal Reports, ER Diagram & Deliverables
+│   ├── FacultyOS_Academic_Report.pdf      # Complete 11-section official academic report
+│   ├── ER_Diagram.md                      # Relational schema dictionary & Mermaid diagram
+│   ├── ER_Diagram.png                     # 300 DPI high-resolution visual ER diagram
 │   ├── PHASE13_FINAL_SUBMISSION_REPORT.md
 │   ├── PHASE14_UI_REMEDIATION_REPORT.md
 │   ├── PHASE14_1_FINAL_ACCEPTANCE_REPORT.md

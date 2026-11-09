@@ -80,6 +80,9 @@ class FacultyRegistrationForm(forms.ModelForm):
 
     def clean_username(self):
         username = self.cleaned_data.get('username', '').strip()
+        reserved_usernames = {'admin', 'administrator', 'root', 'superuser', 'dean', 'hod', 'facultyos', 'system'}
+        if username.lower() in reserved_usernames:
+            raise forms.ValidationError("This username is reserved for system administration. Please choose a different username.")
         if User.objects.filter(username__iexact=username).exists():
             raise forms.ValidationError("This username is already taken. Please choose another.")
         return username

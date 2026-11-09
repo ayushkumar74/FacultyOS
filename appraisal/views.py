@@ -1,8 +1,11 @@
+from functools import wraps
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
 from django.contrib import messages
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.utils import timezone
+from django.db import transaction
 from django.db.models import Count, Avg, Q
 
 from .models import (
@@ -21,6 +24,7 @@ from .forms import (
     CompletedProjectForm,
     AppraisalSubmissionForm,
     AdminAppraisalReviewForm,
+    AdminFacultyCreateForm,
 )
 from .scoring import calculate_appraisal_score
 from .pdf_generator import generate_appraisal_pdf
@@ -34,6 +38,7 @@ AVAILABLE_ACADEMIC_YEARS = ['2025-2026', '2024-2025', '2023-2024', '2022-2023']
 # ---------------------------------------------------------------------------
 def faculty_required(view_func):
     """Ensure user is logged in and has an associated faculty profile."""
+    @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('login')
@@ -46,6 +51,7 @@ def faculty_required(view_func):
 
 def admin_required(view_func):
     """Ensure user is logged in and has staff or superuser privileges."""
+    @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('login')
@@ -591,6 +597,82 @@ def admin_faculty_detail(request, pk):
 
 
 @admin_required
+def admin_faculty_create(request):
+    """
+    Administrative view to onboard new faculty members into the institutional directory.
+    Creates Django User (strictly non-admin) and associated FacultyProfile atomically.
+    """
+    if request.method == 'POST':
+        form = AdminFacultyCreateForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                username = form.cleaned_data['username']
+                email = form.cleaned_data['email']
+                password = form.cleaned_data['temporary_password']
+                first_name = form.cleaned_data['first_name']
+                last_name = form.cleaned_data['last_name']
+
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                    is_staff=False,
+                    is_superuser=False
+                )
+
+                profile = form.save(commit=False)
+                profile.user = user
+                profile.save()
+
+            messages.success(
+                request,
+                f"Faculty account for {user.get_full_name() or user.username} ({profile.employee_id}) created successfully!"
+            )
+            return redirect('admin_faculty_detail', pk=profile.pk)
+        else:
+            messages.error(request, "Please correct the errors in the form below.")
+    else:
+        form = AdminFacultyCreateForm()
+
+    return render(request, 'admin_portal/faculty_form.html', {
+        'form': form,
+        'is_edit': False,
+    })
+
+
+@admin_required
+def admin_faculty_edit(request, pk):
+    """
+    Administrative view to update faculty profile and user identity details.
+    """
+    profile = get_object_or_404(FacultyProfile.objects.select_related('user'), pk=pk)
+    user = profile.user
+    if request.method == 'POST':
+        form = FacultyProfileUpdateForm(request.POST, instance=profile)
+        if form.is_valid():
+            with transaction.atomic():
+                user.first_name = form.cleaned_data['first_name']
+                user.last_name = form.cleaned_data['last_name']
+                user.email = form.cleaned_data['email']
+                user.save()
+                form.save()
+            messages.success(request, f"Dossier for {user.get_full_name() or profile.employee_id} updated successfully.")
+            return redirect('admin_faculty_detail', pk=profile.pk)
+        else:
+            messages.error(request, "Please correct the errors in the form below.")
+    else:
+        form = FacultyProfileUpdateForm(instance=profile)
+
+    return render(request, 'admin_portal/faculty_form.html', {
+        'form': form,
+        'profile': profile,
+        'is_edit': True,
+    })
+
+
+@admin_required
 def admin_appraisals_list(request):
     appraisals = AppraisalSubmission.objects.select_related('faculty', 'faculty__user').all()
 
@@ -765,4 +847,87 @@ def admin_export_faculty_csv(request):
         ])
 
     return response
+
+
+# ---------------------------------------------------------------------------
+# RUBRIC REQUIREMENTS: CONVERTERS, JSON & ARCHIVE
+# ---------------------------------------------------------------------------
+
+@login_required
+def faculty_api_summary(request, employee_id):
+    """
+    JSON API endpoint returning academic profile summary for a faculty member by Employee ID.
+    Supports <str:employee_id> converter and returns application/json.
+    Protected by authentication; returns 404 JsonResponse if employee_id not found.
+    """
+    try:
+        profile = FacultyProfile.objects.select_related('user').get(employee_id__iexact=employee_id)
+    except FacultyProfile.DoesNotExist:
+        return JsonResponse(
+            {'error': 'Not Found', 'message': f"Faculty member with Employee ID '{employee_id}' not found."},
+            status=404
+        )
+
+    data = {
+        'employee_id': profile.employee_id,
+        'name': profile.user.get_full_name() or profile.user.username,
+        'department': profile.department,
+        'department_name': profile.get_department_display(),
+        'designation': profile.designation,
+        'promotion_status': profile.promotion_status,
+        'highest_qualification': profile.highest_qualification,
+        'specialization': profile.specialization,
+    }
+    return JsonResponse(data, status=200)
+
+
+@login_required
+def faculty_department_directory(request, department_slug):
+    """
+    Departmental directory filtered by department slug (<slug:department_slug> converter).
+    Validates slug against existing DEPARTMENT_CHOICES; raises Http404 for invalid slugs.
+    """
+    dept_code = department_slug.upper()
+    dept_dict = dict(FacultyProfile.DEPARTMENT_CHOICES)
+    if dept_code not in dept_dict:
+        raise Http404(f"Department '{department_slug}' not found.")
+
+    dept_name = dept_dict[dept_code]
+    profiles = FacultyProfile.objects.select_related('user').filter(department=dept_code).order_by('employee_id')
+
+    context = {
+        'department_code': dept_code,
+        'department_name': dept_name,
+        'department_slug': department_slug,
+        'profiles': profiles,
+        'total_faculty': profiles.count(),
+        'all_departments': FacultyProfile.DEPARTMENT_CHOICES,
+    }
+    return render(request, 'faculty/department_directory.html', context)
+
+
+@login_required
+def archive_by_year(request, year):
+    """
+    Archive route capturing academic year via regex converter (re_path).
+    Supports both 4-digit (e.g. '2025-2026') and 2-digit suffix (e.g. '2025-26') formats.
+    Routes to the appropriate archive/filtering dashboard view.
+    """
+    normalized_year = year
+    # Normalize '2025-26' to '2025-2026'
+    if len(year) == 7 and year[4] == '-':
+        prefix = year[:4]
+        suffix = year[5:]
+        century = prefix[:2]
+        normalized_year = f"{prefix}-{century}{suffix}"
+
+    if normalized_year not in AVAILABLE_ACADEMIC_YEARS:
+        raise Http404(f"Academic year '{year}' not found in portal archives.")
+
+    if request.user.is_staff or request.user.is_superuser:
+        return redirect(f"/admin-portal/appraisals/?year={normalized_year}")
+    elif hasattr(request.user, 'faculty_profile'):
+        return redirect(f"/faculty/dashboard/?year={normalized_year}")
+    return redirect('login')
+
 

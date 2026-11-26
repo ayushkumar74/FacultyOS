@@ -4,18 +4,54 @@
 
 {% block content %}
 <div class="container-fluid px-0">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <!-- Institutional Header Strip -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <span class="saas-badge saas-badge-amber">Category 3 &bull; 15 Pts Max</span>
+            <!-- Breadcrumbs / Identity Badges -->
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-1.5">
+                <span class="saas-badge saas-badge-amber" style="background-color: #FEF3C7; color: #92400E; font-weight: 600;">
+                    UGC PBAS Category 3 &bull; 15 Pts Max
+                </span>
+                <span class="employee-id-pill font-mono" title="Faculty Employee ID">
+                    {{ profile.employee_id|default:user_faculty_profile.employee_id }}
+                </span>
+                <span class="saas-badge saas-badge-neutral d-inline-flex align-items-center gap-1 font-mono" style="font-weight: 500;">
+                    <i class="bi bi-building text-muted"></i> {{ profile.get_department_display|default:user_faculty_profile.get_department_display }}
+                </span>
+                <span class="saas-badge saas-badge-neutral d-inline-flex align-items-center gap-1 font-mono" style="font-weight: 500;">
+                    <i class="bi bi-calendar3 text-muted"></i> Academic Session {{ active_year }}
+                </span>
             </div>
-            <h1 class="h4 fw-bold mb-0 text-dark">Workshops, FDPs &amp; Professional Training</h1>
-            <p class="text-muted extra-small mb-0 mt-1">Faculty development programs, STTPs, technical workshops, and pedagogical training</p>
+            <h1 class="h4 fw-bold mb-1 text-dark">Workshops, FDPs &amp; Professional Training</h1>
+            <p class="text-muted extra-small mb-0">Faculty development programs, STTPs, technical workshops, and pedagogical training</p>
         </div>
-        <div>
+
+        <div class="d-flex align-items-center flex-wrap gap-2">
+            <!-- Compact Category 3 PBAS Score Summary Widget -->
+            {% if category_3_score is not None %}
+            <div class="saas-card p-2 px-3 d-flex align-items-center gap-3 bg-white border shadow-sm" style="border-radius: var(--radius-md);">
+                <div>
+                    <div class="extra-small text-muted fw-semibold text-uppercase tracking-wider" style="font-size: 0.68rem;">Category 3 PBAS</div>
+                    <div class="d-flex align-items-baseline gap-1">
+                        <span class="h5 fw-bold text-dark font-mono mb-0">{{ category_3_score }}</span>
+                        <span class="text-muted extra-small">/ 15.0 pts</span>
+                    </div>
+                </div>
+                <div class="vr mx-1 d-none d-sm-block"></div>
+                <div class="d-none d-sm-block" style="min-width: 105px;">
+                    <div class="d-flex justify-content-between extra-small text-muted mb-1" style="font-size: 0.68rem;">
+                        <span>Target Progress</span>
+                        <span class="font-mono">{% widthratio category_3_score 15 100 %}%</span>
+                    </div>
+                    <div class="progress" style="height: 5px; width: 105px; background-color: var(--surface-subtle); border-radius: 999px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {% widthratio category_3_score 15 100 %}%;" aria-valuenow="{{ category_3_score }}" aria-valuemin="0" aria-valuemax="15"></div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <a href="{% url 'workshop_create' %}" class="btn-saas btn-saas-primary btn-saas-sm">
-                <i class="bi bi-plus-lg"></i> Log Workshop / FDP
+                <i class="bi bi-plus-lg me-1"></i> Log Workshop / FDP
             </a>
         </div>
     </div>
@@ -23,23 +59,26 @@
     <!-- Data Table Card -->
     <div class="saas-card">
         <div class="saas-card-header flex-wrap gap-2">
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center flex-wrap gap-2">
                 <div class="saas-card-title">
-                    <i class="bi bi-award text-warning"></i> Training &amp; Pedagogy Log
+                    <i class="bi bi-award me-1 text-warning"></i> Training &amp; Pedagogy Log
                 </div>
                 <span class="saas-badge saas-badge-neutral">{{ records.count }} Programs</span>
+                <span id="workshopSearchFeedback" class="saas-badge saas-badge-neutral extra-small font-mono d-none d-sm-inline-block">
+                    Showing {{ records.count }} of {{ records.count }} programs
+                </span>
             </div>
 
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <!-- Search Filter -->
                 <div class="position-relative">
-                    <input type="text" class="saas-input py-1 pe-2 ps-4" style="font-size: 0.78rem; width: 180px;" placeholder="Filter program..." data-table-filter="workshopTable">
+                    <input type="text" class="saas-input py-1 pe-2 ps-4" style="font-size: 0.78rem; width: 190px;" placeholder="Filter program..." data-table-filter="workshopTable" aria-label="Filter program title or institution">
                     <i class="bi bi-search position-absolute start-0 top-50 translate-middle-y ms-2 text-muted extra-small"></i>
                 </div>
 
                 <!-- Session Selector -->
-                <form method="GET" class="d-flex align-items-center gap-1">
-                    <select name="year" class="saas-select py-1 pe-3" style="font-size: 0.78rem; width: auto;" onchange="this.form.submit()">
+                <form method="GET" class="d-flex align-items-center gap-1 m-0">
+                    <select name="year" class="saas-select py-1 pe-3" style="font-size: 0.78rem; width: auto;" onchange="this.form.submit()" aria-label="Filter by Academic Session">
                         <option value="">All Sessions</option>
                         {% for yr in available_years %}
                             <option value="{{ yr }}" {% if yr == year_filter %}selected{% endif %}>{{ yr }}</option>
@@ -52,68 +91,362 @@
         <div class="saas-card-body p-0">
             {% if records %}
                 <div class="table-responsive">
-                    <table class="saas-table" id="workshopTable">
+                    <table class="saas-table workshop-responsive-table" id="workshopTable">
                         <thead>
                             <tr>
-                                <th>Program Title &amp; Host Institution</th>
-                                <th>Category</th>
+                                <th style="min-width: 280px;">Program Title &amp; Host Institution</th>
+                                <th>Category / Type</th>
                                 <th>Faculty Role</th>
-                                <th>Dates &amp; Duration</th>
-                                <th class="text-end">Actions</th>
+                                <th class="text-center">Dates &amp; Duration</th>
+                                <th>Verification Certificate</th>
+                                <th class="text-end" style="min-width: 120px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for r in records %}
                                 <tr>
-                                    <td>
-                                        <div class="fw-bold text-dark">{{ r.title }}</div>
-                                        <div class="extra-small text-muted">{{ r.organizing_institution }}</div>
-                                        {% if r.certificate_link %}
-                                            <a href="{{ r.certificate_link }}" target="_blank" class="extra-small text-primary text-decoration-none">
-                                                <i class="bi bi-award me-1"></i> View Certificate
-                                            </a>
-                                        {% endif %}
+                                    <td data-label="Program & Host">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            {% if r.program_type == 'FDP' %}
+                                                <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle px-1.5 py-0.5 extra-small font-mono fw-bold">
+                                                    <i class="bi bi-mortarboard-fill me-1"></i>FDP
+                                                </span>
+                                            {% elif r.program_type == 'STTP' %}
+                                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-1.5 py-0.5 extra-small font-mono fw-bold">
+                                                    <i class="bi bi-speedometer me-1"></i>STTP
+                                                </span>
+                                            {% elif r.program_type == 'WORKSHOP' %}
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-1.5 py-0.5 extra-small font-mono fw-bold">
+                                                    <i class="bi bi-tools me-1"></i>WORKSHOP
+                                                </span>
+                                            {% elif r.program_type == 'ORIENTATION' %}
+                                                <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-1.5 py-0.5 extra-small font-mono fw-bold">
+                                                    <i class="bi bi-compass-fill me-1"></i>ORIENTATION
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary-emphasis border px-1.5 py-0.5 extra-small font-mono fw-bold">
+                                                    <i class="bi bi-mic-fill me-1"></i>SEMINAR
+                                                </span>
+                                            {% endif %}
+                                            <span class="saas-badge saas-badge-neutral font-mono d-md-none">{{ r.academic_year }}</span>
+                                        </div>
+                                        <div class="fw-bold text-dark" style="max-width: 380px; overflow-wrap: anywhere; word-break: normal; line-height: 1.35;">
+                                            {{ r.title }}
+                                        </div>
+                                        <div class="extra-small text-muted mt-0.5 d-flex align-items-center gap-1">
+                                            <i class="bi bi-building text-muted" style="font-size: 0.68rem;"></i>
+                                            <span>{{ r.organizing_institution }}</span>
+                                        </div>
                                     </td>
-                                    <td>
-                                        <span class="saas-badge saas-badge-blue">{{ r.get_program_type_display }}</span>
+                                    <td data-label="Category / Type">
+                                        <span class="saas-badge saas-badge-blue">
+                                            {{ r.get_program_type_display }}
+                                        </span>
                                     </td>
-                                    <td>
-                                        <span class="saas-badge {% if r.role == 'Resource Person' %}saas-badge-green{% elif r.role == 'Coordinator' %}saas-badge-amber{% else %}saas-badge-neutral{% endif %}">
+                                    <td data-label="Faculty Role">
+                                        <span class="saas-badge {% if r.role == 'Resource Person' %}saas-badge-green{% elif r.role == 'Coordinator' %}saas-badge-amber{% else %}saas-badge-neutral{% endif %} font-mono">
+                                            {% if r.role == 'Resource Person' or r.role == 'Coordinator' %}
+                                                <i class="bi bi-star-fill text-warning me-1"></i>
+                                            {% endif %}
                                             {{ r.role }}
                                         </span>
                                     </td>
-                                    <td>
-                                        <strong class="text-dark">{{ r.duration_days }} Days</strong>
-                                        <div class="extra-small text-muted">{{ r.start_date|date:"d M" }} - {{ r.end_date|date:"d M Y" }}</div>
+                                    <td data-label="Dates & Duration" class="text-md-center">
+                                        <strong class="text-dark font-mono">{{ r.duration_days }} Days</strong>
+                                        <div class="extra-small text-muted font-mono mt-0.5">{{ r.start_date|date:"d M" }} - {{ r.end_date|date:"d M Y" }}</div>
                                     </td>
-                                    <td class="text-end">
-                                        <a href="{% url 'workshop_update' r.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2" title="Edit">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <a href="{% url 'workshop_delete' r.pk %}" class="btn-saas btn-saas-ghost text-danger btn-saas-sm py-1 px-2" title="Delete">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
+                                    <td data-label="Certificate">
+                                        {% if r.certificate_link %}
+                                            <a href="{{ r.certificate_link }}" target="_blank" rel="noopener noreferrer" class="saas-badge saas-badge-amber d-inline-flex align-items-center gap-1 text-decoration-none" title="Open Verification Certificate (External)">
+                                                <i class="bi bi-award extra-small"></i>
+                                                <span class="font-mono" style="font-size: 0.72rem;">Certificate</span>
+                                                <i class="bi bi-box-arrow-up-right" style="font-size: 0.65rem;"></i>
+                                            </a>
+                                        {% else %}
+                                            <span class="extra-small text-muted fst-italic">No certificate linked</span>
+                                        {% endif %}
+                                    </td>
+                                    <td data-label="Actions" class="text-end">
+                                        <div class="d-inline-flex align-items-center gap-1 justify-content-end">
+                                            <!-- View Details Modal Trigger -->
+                                            <button type="button" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2" data-bs-toggle="modal" data-bs-target="#viewModal{{ r.pk }}" title="View Program Details" aria-label="View Details for {{ r.title }}">
+                                                <i class="bi bi-eye"></i>
+                                                <span class="d-inline d-md-none ms-1 extra-small">View</span>
+                                            </button>
+
+                                            <!-- Edit Record -->
+                                            <a href="{% url 'workshop_update' r.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2" title="Edit Workshop Record" aria-label="Edit {{ r.title }}">
+                                                <i class="bi bi-pencil"></i>
+                                                <span class="d-inline d-md-none ms-1 extra-small">Edit</span>
+                                            </a>
+
+                                            <!-- Delete Modal Trigger -->
+                                            <button type="button" class="btn-saas btn-saas-ghost text-danger btn-saas-sm py-1 px-2" data-bs-toggle="modal" data-bs-target="#deleteModal{{ r.pk }}" title="Delete Workshop Record" aria-label="Delete {{ r.title }}">
+                                                <i class="bi bi-trash"></i>
+                                                <span class="d-inline d-md-none ms-1 extra-small">Delete</span>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             {% endfor %}
+                            <!-- Empty Filter Match Notice -->
+                            <tr class="empty-search-notice" style="display: none;">
+                                <td colspan="6" class="text-center py-4 text-muted extra-small">
+                                    <i class="bi bi-search me-1"></i> No workshops or training programs match your filter criteria.
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             {% else %}
-                <div class="empty-state-box">
-                    <div class="empty-state-icon">
+                <div class="empty-state-box text-center p-5">
+                    <div class="empty-state-icon mb-3" style="width: 52px; height: 52px; margin: 0 auto; display: flex; align-items: center; justify-content: center; background-color: var(--surface-subtle); border-radius: 50%; color: var(--brand-primary); font-size: 1.5rem;">
                         <i class="bi bi-award"></i>
                     </div>
-                    <h2 class="empty-state-title">No Training Records Logged</h2>
-                    <p class="empty-state-text">
-                        No workshops, FDPs, or STTPs logged for this academic session. Log attended or coordinated sessions to earn up to 15 points.
+                    <h2 class="h5 fw-bold text-dark mb-1">No Training Records Logged</h2>
+                    <p class="text-muted extra-small mb-4 mx-auto" style="max-width: 480px;">
+                        No workshops, FDPs, or STTPs have been recorded for {% if year_filter %}Session {{ year_filter }}{% else %}this view{% endif %}. Log attended or coordinated programs to accumulate statutory PBAS Category 3 points (up to 15.0 pts).
                     </p>
                     <a href="{% url 'workshop_create' %}" class="btn-saas btn-saas-primary btn-saas-sm">
-                        <i class="bi bi-plus-lg"></i> Log Workshop Record
+                        <i class="bi bi-plus-lg me-1"></i> Log First Workshop / FDP
                     </a>
                 </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<!-- =========================================================================
+     MODALS: VIEW PROGRAM DETAILS & DELETE CONFIRMATION
+     ========================================================================= -->
+{% for r in records %}
+    <!-- View Program Details Modal -->
+    <div class="modal fade" id="viewModal{{ r.pk }}" tabindex="-1" aria-labelledby="viewModalLabel{{ r.pk }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+            <div class="modal-content shadow border-0" style="border-radius: var(--radius-md);">
+                <div class="modal-header border-bottom py-2.5 px-3 bg-light">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="saas-badge saas-badge-blue font-mono">
+                            {{ r.get_program_type_display }}
+                        </span>
+                        <h2 class="modal-title fw-bold text-dark mb-0 fs-6 text-truncate" id="viewModalLabel{{ r.pk }}" style="max-width: 380px;">
+                            Training Program Dossier
+                        </h2>
+                    </div>
+                    <button type="button" class="btn-close extra-small" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <!-- Title & Host Card -->
+                    <div class="p-3 rounded border bg-light mb-3">
+                        <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-1" style="font-size: 0.68rem;">Program Title &amp; Theme</div>
+                        <h3 class="h6 fw-bold text-dark mb-2" style="line-height: 1.45;">{{ r.title }}</h3>
+                        <div class="extra-small text-muted d-flex align-items-center gap-1.5">
+                            <i class="bi bi-building text-primary"></i>
+                            <span class="fw-semibold text-dark">{{ r.organizing_institution }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Metadata Grid -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-6">
+                            <div class="p-2.5 rounded border bg-white h-100">
+                                <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-1" style="font-size: 0.68rem;">Faculty Role &amp; Contribution</div>
+                                <span class="saas-badge {% if r.role == 'Resource Person' %}saas-badge-green{% elif r.role == 'Coordinator' %}saas-badge-amber{% else %}saas-badge-neutral{% endif %} font-mono">
+                                    {{ r.role }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-2.5 rounded border bg-white h-100">
+                                <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-1" style="font-size: 0.68rem;">Duration &amp; Session</div>
+                                <div class="fw-bold text-dark font-mono extra-small">{{ r.duration_days }} Days Total</div>
+                                <div class="extra-small text-muted font-mono">Session {{ r.academic_year }}</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-2.5 rounded border bg-white h-100">
+                                <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-1" style="font-size: 0.68rem;">Start Date</div>
+                                <div class="fw-semibold text-dark font-mono extra-small">{{ r.start_date|date:"F d, Y" }}</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-2.5 rounded border bg-white h-100">
+                                <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-1" style="font-size: 0.68rem;">End Date</div>
+                                <div class="fw-semibold text-dark font-mono extra-small">{{ r.end_date|date:"F d, Y" }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Certificate Link Card -->
+                    <div class="p-2.5 rounded border bg-white d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-0.5" style="font-size: 0.68rem;">Verification Certificate URL</div>
+                            {% if r.certificate_link %}
+                                <a href="{{ r.certificate_link }}" target="_blank" rel="noopener noreferrer" class="extra-small text-primary text-decoration-none font-mono d-inline-flex align-items-center gap-1 text-break">
+                                    <i class="bi bi-award flex-shrink-0 text-warning"></i> {{ r.certificate_link }}
+                                </a>
+                            {% else %}
+                                <span class="extra-small text-muted fst-italic">No verification certificate URL linked</span>
+                            {% endif %}
+                        </div>
+                        {% if r.certificate_link %}
+                            <a href="{{ r.certificate_link }}" target="_blank" rel="noopener noreferrer" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2.5 font-mono extra-small">
+                                View Certificate <i class="bi bi-box-arrow-up-right ms-1"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer border-top py-2 px-3 d-flex justify-content-between">
+                    <a href="{% url 'workshop_update' r.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                        <i class="bi bi-pencil me-1"></i> Edit Program
+                    </a>
+                    <button type="button" class="btn-saas btn-saas-primary btn-saas-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- In-Page Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal{{ r.pk }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ r.pk }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+            <div class="modal-content shadow border-0" style="border-radius: var(--radius-md);">
+                <div class="modal-header border-bottom py-2.5 px-3 bg-light">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                        <h2 class="modal-title fw-bold text-dark mb-0 fs-6" id="deleteModalLabel{{ r.pk }}">Confirm Program Deletion</h2>
+                    </div>
+                    <button type="button" class="btn-close extra-small" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{% url 'workshop_delete' r.pk %}">
+                    {% csrf_token %}
+                    <div class="modal-body p-4 text-center">
+                        <div class="metric-icon-wrap metric-icon-rose mx-auto mb-3" style="width: 44px; height: 44px; font-size: 1.2rem; background-color: var(--rose-50); color: var(--rose-600); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-trash3-fill"></i>
+                        </div>
+                        <h3 class="h6 fw-bold text-dark mb-1">Delete Training Record?</h3>
+                        <p class="text-muted extra-small mb-3">
+                            Are you sure you want to permanently remove this workshop / training program from your academic appraisal profile?<br/>
+                            <span class="text-dark fw-bold d-inline-block mt-1">"{{ r.title }}"</span><br/>
+                            <span class="extra-small text-muted font-mono">{{ r.get_program_type_display }} &bull; {{ r.organizing_institution }} (Session {{ r.academic_year }})</span>
+                        </p>
+                        <div class="alert alert-warning py-2 px-3 extra-small mb-0 text-start rounded-2">
+                            <i class="bi bi-info-circle-fill me-1 text-warning"></i>
+                            <strong>Note:</strong> Deleting this training program will automatically update your active PBAS Category 3 score calculation.
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top py-2 px-3 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn-saas btn-saas-secondary btn-saas-sm px-3" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-saas btn-saas-danger btn-saas-sm px-3">
+                            <i class="bi bi-trash me-1"></i> Confirm Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+<!-- Responsive Table & Micro-Interaction Styling -->
+<style>
+/* Table Alignment & Typography */
+#workshopTable th {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+#workshopTable td {
+    vertical-align: middle;
+}
+
+/* Mobile & Tablet Responsive Layout */
+@media (max-width: 767.98px) {
+    .workshop-responsive-table thead {
+        display: none !important;
+    }
+    .workshop-responsive-table, 
+    .workshop-responsive-table tbody, 
+    .workshop-responsive-table tr {
+        display: block !important;
+        width: 100% !important;
+    }
+    .workshop-responsive-table tbody tr:not(.empty-search-notice) {
+        background: #ffffff;
+        border: 1px solid var(--border-default, #E2E8F0);
+        border-radius: var(--radius-md, 8px);
+        margin-bottom: 0.85rem;
+        padding: 0.85rem 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .workshop-responsive-table td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0.45rem 0 !important;
+        border-top: none !important;
+        border-bottom: 1px dashed var(--border-subtle, #F1F5F9) !important;
+        font-size: 0.82rem;
+    }
+    .workshop-responsive-table td:last-child {
+        border-bottom: none !important;
+        padding-top: 0.65rem !important;
+        margin-top: 0.25rem;
+        border-top: 1px solid var(--border-default, #E2E8F0) !important;
+    }
+    .workshop-responsive-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.72rem;
+        color: var(--text-secondary, #64748B);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+    }
+    .workshop-responsive-table td[data-label="Program & Host"] {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        border-bottom: 1px solid var(--border-default, #E2E8F0) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 0.35rem;
+    }
+    .workshop-responsive-table td[data-label="Program & Host"]::before {
+        display: none !important;
+    }
+    .workshop-responsive-table td[data-label="Actions"] {
+        justify-content: flex-end !important;
+        gap: 0.5rem;
+    }
+    .workshop-responsive-table td[data-label="Actions"]::before {
+        margin-right: auto;
+    }
+}
+</style>
+
+<!-- Live Search Feedback Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('[data-table-filter="workshopTable"]');
+    const feedbackEl = document.getElementById('workshopSearchFeedback');
+    const table = document.getElementById('workshopTable');
+    if (!searchInput || !feedbackEl || !table) return;
+
+    const rows = table.querySelectorAll('tbody tr:not(.empty-search-notice)');
+    const totalCount = rows.length;
+
+    searchInput.addEventListener('input', function() {
+        setTimeout(function() {
+            let visibleCount = 0;
+            rows.forEach(function(row) {
+                if (row.style.display !== 'none') {
+                    visibleCount++;
+                }
+            });
+            if (searchInput.value.trim() === '') {
+                feedbackEl.textContent = `Showing ${totalCount} of ${totalCount} programs`;
+            } else {
+                feedbackEl.textContent = `Showing ${visibleCount} of ${totalCount} programs`;
+            }
+        }, 50);
+    });
+});
+</script>
 {% endblock %}

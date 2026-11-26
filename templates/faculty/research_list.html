@@ -4,18 +4,54 @@
 
 {% block content %}
 <div class="container-fluid px-0">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <!-- Institutional Header Strip -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <span class="saas-badge saas-badge-green">Category 2 &bull; 30 Pts Max</span>
+            <!-- Breadcrumbs / Identity Badges -->
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-1.5">
+                <span class="saas-badge saas-badge-green" style="background-color: #ECFDF5; color: #065F46; font-weight: 600;">
+                    UGC PBAS Category 2 &bull; 30 Pts Max
+                </span>
+                <span class="employee-id-pill font-mono" title="Faculty Employee ID">
+                    {{ profile.employee_id|default:user_faculty_profile.employee_id }}
+                </span>
+                <span class="saas-badge saas-badge-neutral d-inline-flex align-items-center gap-1 font-mono" style="font-weight: 500;">
+                    <i class="bi bi-building text-muted"></i> {{ profile.get_department_display|default:user_faculty_profile.get_department_display }}
+                </span>
+                <span class="saas-badge saas-badge-neutral d-inline-flex align-items-center gap-1 font-mono" style="font-weight: 500;">
+                    <i class="bi bi-calendar3 text-muted"></i> Academic Session {{ active_year }}
+                </span>
             </div>
-            <h1 class="h4 fw-bold mb-0 text-dark">Research Publications &amp; Intellectual Property</h1>
-            <p class="text-muted extra-small mb-0 mt-1">Peer-reviewed journals (SCI/Scopus), international conferences, patents, and book chapters</p>
+            <h1 class="h4 fw-bold mb-1 text-dark">Research Publications &amp; Intellectual Property</h1>
+            <p class="text-muted extra-small mb-0">Peer-reviewed journals (SCI/Scopus), international conferences, patents, and book chapters</p>
         </div>
-        <div>
+
+        <div class="d-flex align-items-center flex-wrap gap-2">
+            <!-- Compact Category 2 PBAS Score Summary Widget -->
+            {% if category_2_score is not None %}
+            <div class="saas-card p-2 px-3 d-flex align-items-center gap-3 bg-white border shadow-sm" style="border-radius: var(--radius-md);">
+                <div>
+                    <div class="extra-small text-muted fw-semibold text-uppercase tracking-wider" style="font-size: 0.68rem;">Category 2 PBAS</div>
+                    <div class="d-flex align-items-baseline gap-1">
+                        <span class="h5 fw-bold text-dark font-mono mb-0">{{ category_2_score }}</span>
+                        <span class="text-muted extra-small">/ 30.0 pts</span>
+                    </div>
+                </div>
+                <div class="vr mx-1 d-none d-sm-block"></div>
+                <div class="d-none d-sm-block" style="min-width: 105px;">
+                    <div class="d-flex justify-content-between extra-small text-muted mb-1" style="font-size: 0.68rem;">
+                        <span>Target Progress</span>
+                        <span class="font-mono">{% widthratio category_2_score 30 100 %}%</span>
+                    </div>
+                    <div class="progress" style="height: 5px; width: 105px; background-color: var(--surface-subtle); border-radius: 999px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {% widthratio category_2_score 30 100 %}%;" aria-valuenow="{{ category_2_score }}" aria-valuemin="0" aria-valuemax="30"></div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <a href="{% url 'research_create' %}" class="btn-saas btn-saas-primary btn-saas-sm">
-                <i class="bi bi-plus-lg"></i> Log Publication
+                <i class="bi bi-plus-lg me-1"></i> Log Publication
             </a>
         </div>
     </div>
@@ -23,23 +59,26 @@
     <!-- Data Table Card -->
     <div class="saas-card">
         <div class="saas-card-header flex-wrap gap-2">
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center flex-wrap gap-2">
                 <div class="saas-card-title">
-                    <i class="bi bi-book text-success"></i> Research Repository
+                    <i class="bi bi-book me-1 text-success"></i> Research Repository
                 </div>
                 <span class="saas-badge saas-badge-neutral">{{ records.count }} Papers</span>
+                <span id="researchSearchFeedback" class="saas-badge saas-badge-neutral extra-small font-mono d-none d-sm-inline-block">
+                    Showing {{ records.count }} of {{ records.count }} papers
+                </span>
             </div>
 
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <!-- Search Filter -->
                 <div class="position-relative">
-                    <input type="text" class="saas-input py-1 pe-2 ps-4" style="font-size: 0.78rem; width: 180px;" placeholder="Filter title/author..." data-table-filter="researchTable">
+                    <input type="text" class="saas-input py-1 pe-2 ps-4" style="font-size: 0.78rem; width: 190px;" placeholder="Filter title/author..." data-table-filter="researchTable" aria-label="Filter title or author">
                     <i class="bi bi-search position-absolute start-0 top-50 translate-middle-y ms-2 text-muted extra-small"></i>
                 </div>
 
                 <!-- Session Selector -->
-                <form method="GET" class="d-flex align-items-center gap-1">
-                    <select name="year" class="saas-select py-1 pe-3" style="font-size: 0.78rem; width: auto;" onchange="this.form.submit()">
+                <form method="GET" class="d-flex align-items-center gap-1 m-0">
+                    <select name="year" class="saas-select py-1 pe-3" style="font-size: 0.78rem; width: auto;" onchange="this.form.submit()" aria-label="Filter by Academic Session">
                         <option value="">All Sessions</option>
                         {% for yr in available_years %}
                             <option value="{{ yr }}" {% if yr == year_filter %}selected{% endif %}>{{ yr }}</option>
@@ -52,73 +91,368 @@
         <div class="saas-card-body p-0">
             {% if records %}
                 <div class="table-responsive">
-                    <table class="saas-table" id="researchTable">
+                    <table class="saas-table research-responsive-table" id="researchTable">
                         <thead>
                             <tr>
-                                <th>Paper / Patent Title &amp; Venue</th>
+                                <th style="min-width: 280px;">Paper / Patent Title &amp; Venue</th>
                                 <th>Indexing / Category</th>
                                 <th>Author Role</th>
                                 <th>Date &amp; ISSN/ISBN</th>
-                                <th class="text-end">Actions</th>
+                                <th>DOI / Web Link</th>
+                                <th class="text-end" style="min-width: 120px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for r in records %}
                                 <tr>
-                                    <td>
-                                        <div class="fw-bold text-dark">{{ r.title }}</div>
-                                        <div class="extra-small text-muted">{{ r.journal_conference_name }}</div>
-                                        {% if r.doi_or_url %}
-                                            <a href="{{ r.doi_or_url }}" target="_blank" class="extra-small text-primary text-decoration-none">
-                                                <i class="bi bi-box-arrow-up-right me-1"></i> DOI Link
-                                            </a>
-                                        {% endif %}
+                                    <td data-label="Title & Venue">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            {% if r.publication_type == 'PATENT' %}
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-1.5 py-0.5 extra-small font-mono fw-bold">
+                                                    <i class="bi bi-lightbulb-fill me-1"></i>PATENT
+                                                </span>
+                                            {% elif r.publication_type == 'SCI_SCOPUS' %}
+                                                <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-1.5 py-0.5 extra-small font-mono fw-bold">
+                                                    <i class="bi bi-journal-check me-1"></i>SCI / SCOPUS
+                                                </span>
+                                            {% elif r.publication_type == 'INT_CONF' %}
+                                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-1.5 py-0.5 extra-small font-mono fw-bold">
+                                                    <i class="bi bi-globe me-1"></i>CONF
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary-emphasis border px-1.5 py-0.5 extra-small font-mono fw-bold">
+                                                    <i class="bi bi-file-earmark-text me-1"></i>PUB
+                                                </span>
+                                            {% endif %}
+                                            <span class="saas-badge saas-badge-neutral font-mono d-md-none">{{ r.academic_year }}</span>
+                                        </div>
+                                        <div class="fw-bold text-dark" style="max-width: 380px; overflow-wrap: anywhere; word-break: normal; line-height: 1.35;">
+                                            {{ r.title }}
+                                        </div>
+                                        <div class="extra-small text-muted mt-0.5 d-flex align-items-center gap-1">
+                                            <i class="bi bi-geo-alt-fill text-muted" style="font-size: 0.68rem;"></i>
+                                            <span>{{ r.journal_conference_name }}</span>
+                                        </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Indexing / Category">
                                         <span class="saas-badge {% if r.publication_type == 'SCI_SCOPUS' or r.publication_type == 'PATENT' %}saas-badge-green{% elif r.publication_type == 'UGC_CARE' or r.publication_type == 'INT_CONF' %}saas-badge-blue{% else %}saas-badge-neutral{% endif %}">
                                             {{ r.get_publication_type_display }}
                                         </span>
                                         {% if r.indexing_details %}
-                                            <div class="extra-small text-muted mt-1">{{ r.indexing_details }}</div>
+                                            <div class="extra-small text-muted mt-1 font-mono" style="font-size: 0.72rem;">{{ r.indexing_details }}</div>
                                         {% endif %}
                                     </td>
-                                    <td>
-                                        <span class="saas-badge saas-badge-neutral">{{ r.author_role }}</span>
+                                    <td data-label="Author Role">
+                                        <span class="saas-badge {% if r.author_role == 'First Author' %}saas-badge-blue{% elif r.author_role == 'Corresponding Author' %}saas-badge-neutral{% else %}saas-badge-neutral{% endif %}">
+                                            {{ r.author_role }}
+                                        </span>
                                     </td>
-                                    <td>
-                                        <div class="fw-semibold text-dark">{{ r.publication_date|date:"M Y" }}</div>
+                                    <td data-label="Date & ISSN/ISBN">
+                                        <div class="fw-semibold text-dark font-mono">{{ r.publication_date|date:"M Y" }}</div>
                                         {% if r.issn_isbn %}
-                                            <div class="extra-small text-muted font-mono">{{ r.issn_isbn }}</div>
+                                            <div class="extra-small text-muted font-mono" title="ISSN / ISBN Number">{{ r.issn_isbn }}</div>
+                                        {% else %}
+                                            <div class="extra-small text-muted fst-italic">--</div>
                                         {% endif %}
                                     </td>
-                                    <td class="text-end">
-                                        <a href="{% url 'research_update' r.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2" title="Edit">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <a href="{% url 'research_delete' r.pk %}" class="btn-saas btn-saas-ghost text-danger btn-saas-sm py-1 px-2" title="Delete">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
+                                    <td data-label="DOI / Web Link">
+                                        {% if r.doi_or_url %}
+                                            <a href="{{ r.doi_or_url }}" target="_blank" rel="noopener noreferrer" class="saas-badge saas-badge-blue d-inline-flex align-items-center gap-1 text-decoration-none" title="Open Publication Link (External)">
+                                                <i class="bi bi-box-arrow-up-right extra-small"></i>
+                                                <span class="font-mono" style="font-size: 0.72rem;">DOI / Link</span>
+                                            </a>
+                                        {% else %}
+                                            <span class="extra-small text-muted fst-italic">No DOI provided</span>
+                                        {% endif %}
+                                    </td>
+                                    <td data-label="Actions" class="text-end">
+                                        <div class="d-inline-flex align-items-center gap-1 justify-content-end">
+                                            <!-- View Details Modal Trigger -->
+                                            <button type="button" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2" data-bs-toggle="modal" data-bs-target="#viewModal{{ r.pk }}" title="View Publication Details" aria-label="View Details for {{ r.title }}">
+                                                <i class="bi bi-eye"></i>
+                                                <span class="d-inline d-md-none ms-1 extra-small">View</span>
+                                            </button>
+
+                                            <!-- Edit Record -->
+                                            <a href="{% url 'research_update' r.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2" title="Edit Publication" aria-label="Edit {{ r.title }}">
+                                                <i class="bi bi-pencil"></i>
+                                                <span class="d-inline d-md-none ms-1 extra-small">Edit</span>
+                                            </a>
+
+                                            <!-- Delete Modal Trigger -->
+                                            <button type="button" class="btn-saas btn-saas-ghost text-danger btn-saas-sm py-1 px-2" data-bs-toggle="modal" data-bs-target="#deleteModal{{ r.pk }}" title="Delete Publication" aria-label="Delete {{ r.title }}">
+                                                <i class="bi bi-trash"></i>
+                                                <span class="d-inline d-md-none ms-1 extra-small">Delete</span>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             {% endfor %}
+                            <!-- Empty Filter Match Notice -->
+                            <tr class="empty-search-notice" style="display: none;">
+                                <td colspan="6" class="text-center py-4 text-muted extra-small">
+                                    <i class="bi bi-search me-1"></i> No research publications match your filter criteria.
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             {% else %}
-                <div class="empty-state-box">
-                    <div class="empty-state-icon">
+                <div class="empty-state-box text-center p-5">
+                    <div class="empty-state-icon mb-3" style="width: 52px; height: 52px; margin: 0 auto; display: flex; align-items: center; justify-content: center; background-color: var(--surface-subtle); border-radius: 50%; color: var(--brand-primary); font-size: 1.5rem;">
                         <i class="bi bi-book"></i>
                     </div>
-                    <h2 class="empty-state-title">No Publications Recorded</h2>
-                    <p class="empty-state-text">
-                        No research articles, conferences, or patents have been recorded for this session. Add your publications to accumulate up to 30 research points.
+                    <h2 class="h5 fw-bold text-dark mb-1">No Research Publications Recorded</h2>
+                    <p class="text-muted extra-small mb-4 mx-auto" style="max-width: 480px;">
+                        No research articles, conference proceedings, or patents have been recorded for {% if year_filter %}Session {{ year_filter }}{% else %}this view{% endif %}. Log publications to accumulate statutory PBAS Category 2 research points (up to 30.0 pts).
                     </p>
-                    <a href="{% url 'research_create' %}" class="btn-saas btn-saas-success btn-saas-sm">
-                        <i class="bi bi-plus-lg"></i> Log Research Paper
+                    <a href="{% url 'research_create' %}" class="btn-saas btn-saas-primary btn-saas-sm">
+                        <i class="bi bi-plus-lg me-1"></i> Log First Publication
                     </a>
                 </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<!-- =========================================================================
+     MODALS: VIEW PUBLICATION DETAILS & DELETE CONFIRMATION
+     ========================================================================= -->
+{% for r in records %}
+    <!-- View Publication Details Modal -->
+    <div class="modal fade" id="viewModal{{ r.pk }}" tabindex="-1" aria-labelledby="viewModalLabel{{ r.pk }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 620px;">
+            <div class="modal-content shadow border-0" style="border-radius: var(--radius-md);">
+                <div class="modal-header border-bottom py-2.5 px-3 bg-light">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="saas-badge {% if r.publication_type == 'SCI_SCOPUS' or r.publication_type == 'PATENT' %}saas-badge-green{% else %}saas-badge-blue{% endif %} font-mono">
+                            {{ r.get_publication_type_display }}
+                        </span>
+                        <h2 class="modal-title fw-bold text-dark mb-0 fs-6 text-truncate" id="viewModalLabel{{ r.pk }}" style="max-width: 380px;">
+                            Publication Dossier
+                        </h2>
+                    </div>
+                    <button type="button" class="btn-close extra-small" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <!-- Title & Venue Card -->
+                    <div class="p-3 rounded border bg-light mb-3">
+                        <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-1" style="font-size: 0.68rem;">Manuscript / Patent Title</div>
+                        <h3 class="h6 fw-bold text-dark mb-2" style="line-height: 1.45;">{{ r.title }}</h3>
+                        <div class="extra-small text-muted d-flex align-items-center gap-1.5">
+                            <i class="bi bi-journal-bookmark-fill text-primary"></i>
+                            <span class="fw-semibold text-dark">{{ r.journal_conference_name }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Metadata Grid -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-6">
+                            <div class="p-2.5 rounded border bg-white h-100">
+                                <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-1" style="font-size: 0.68rem;">Author Role</div>
+                                <span class="saas-badge saas-badge-blue">{{ r.author_role }}</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-2.5 rounded border bg-white h-100">
+                                <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-1" style="font-size: 0.68rem;">Publication Date &amp; Session</div>
+                                <div class="fw-semibold text-dark font-mono extra-small">{{ r.publication_date|date:"F d, Y" }}</div>
+                                <div class="extra-small text-muted font-mono">Session {{ r.academic_year }}</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-2.5 rounded border bg-white h-100">
+                                <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-1" style="font-size: 0.68rem;">ISSN / ISBN / Patent No.</div>
+                                {% if r.issn_isbn %}
+                                    <div class="fw-bold text-dark font-mono extra-small">{{ r.issn_isbn }}</div>
+                                {% else %}
+                                    <div class="extra-small text-muted fst-italic">Not specified</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-2.5 rounded border bg-white h-100">
+                                <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-1" style="font-size: 0.68rem;">Indexing &amp; Impact Factor</div>
+                                {% if r.indexing_details %}
+                                    <div class="fw-semibold text-dark font-mono extra-small">{{ r.indexing_details }}</div>
+                                {% else %}
+                                    <div class="extra-small text-muted fst-italic">No additional indexing recorded</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DOI / External URL Link -->
+                    <div class="p-2.5 rounded border bg-white d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-0.5" style="font-size: 0.68rem;">Official DOI / Publisher Link</div>
+                            {% if r.doi_or_url %}
+                                <a href="{{ r.doi_or_url }}" target="_blank" rel="noopener noreferrer" class="extra-small text-primary text-decoration-none font-mono d-inline-flex align-items-center gap-1 text-break">
+                                    <i class="bi bi-box-arrow-up-right flex-shrink-0"></i> {{ r.doi_or_url }}
+                                </a>
+                            {% else %}
+                                <span class="extra-small text-muted fst-italic">No external DOI or URL provided</span>
+                            {% endif %}
+                        </div>
+                        {% if r.doi_or_url %}
+                            <a href="{{ r.doi_or_url }}" target="_blank" rel="noopener noreferrer" class="btn-saas btn-saas-secondary btn-saas-sm py-1 px-2.5 font-mono extra-small">
+                                Open Link <i class="bi bi-box-arrow-up-right ms-1"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer border-top py-2 px-3 d-flex justify-content-between">
+                    <a href="{% url 'research_update' r.pk %}" class="btn-saas btn-saas-secondary btn-saas-sm">
+                        <i class="bi bi-pencil me-1"></i> Edit Publication
+                    </a>
+                    <button type="button" class="btn-saas btn-saas-primary btn-saas-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- In-Page Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal{{ r.pk }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ r.pk }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+            <div class="modal-content shadow border-0" style="border-radius: var(--radius-md);">
+                <div class="modal-header border-bottom py-2.5 px-3 bg-light">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                        <h2 class="modal-title fw-bold text-dark mb-0 fs-6" id="deleteModalLabel{{ r.pk }}">Confirm Publication Deletion</h2>
+                    </div>
+                    <button type="button" class="btn-close extra-small" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{% url 'research_delete' r.pk %}">
+                    {% csrf_token %}
+                    <div class="modal-body p-4 text-center">
+                        <div class="metric-icon-wrap metric-icon-rose mx-auto mb-3" style="width: 44px; height: 44px; font-size: 1.2rem; background-color: var(--rose-50); color: var(--rose-600); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-trash3-fill"></i>
+                        </div>
+                        <h3 class="h6 fw-bold text-dark mb-1">Delete Research Publication?</h3>
+                        <p class="text-muted extra-small mb-3">
+                            Are you sure you want to permanently remove this publication from your academic appraisal repository?<br/>
+                            <span class="text-dark fw-bold d-inline-block mt-1">"{{ r.title }}"</span><br/>
+                            <span class="extra-small text-muted font-mono">{{ r.get_publication_type_display }} &bull; Session {{ r.academic_year }}</span>
+                        </p>
+                        <div class="alert alert-warning py-2 px-3 extra-small mb-0 text-start rounded-2">
+                            <i class="bi bi-info-circle-fill me-1 text-warning"></i>
+                            <strong>Note:</strong> Deleting this publication will automatically update your active PBAS Category 2 research score calculation.
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top py-2 px-3 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn-saas btn-saas-secondary btn-saas-sm px-3" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-saas btn-saas-danger btn-saas-sm px-3">
+                            <i class="bi bi-trash me-1"></i> Confirm Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+<!-- Responsive Table & Micro-Interaction Styling -->
+<style>
+/* Table Alignment & Typography */
+#researchTable th {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+#researchTable td {
+    vertical-align: middle;
+}
+
+/* Mobile & Tablet Responsive Layout */
+@media (max-width: 767.98px) {
+    .research-responsive-table thead {
+        display: none !important;
+    }
+    .research-responsive-table, 
+    .research-responsive-table tbody, 
+    .research-responsive-table tr {
+        display: block !important;
+        width: 100% !important;
+    }
+    .research-responsive-table tbody tr:not(.empty-search-notice) {
+        background: #ffffff;
+        border: 1px solid var(--border-default, #E2E8F0);
+        border-radius: var(--radius-md, 8px);
+        margin-bottom: 0.85rem;
+        padding: 0.85rem 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .research-responsive-table td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0.45rem 0 !important;
+        border-top: none !important;
+        border-bottom: 1px dashed var(--border-subtle, #F1F5F9) !important;
+        font-size: 0.82rem;
+    }
+    .research-responsive-table td:last-child {
+        border-bottom: none !important;
+        padding-top: 0.65rem !important;
+        margin-top: 0.25rem;
+        border-top: 1px solid var(--border-default, #E2E8F0) !important;
+    }
+    .research-responsive-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.72rem;
+        color: var(--text-secondary, #64748B);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+    }
+    .research-responsive-table td[data-label="Title & Venue"] {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        border-bottom: 1px solid var(--border-default, #E2E8F0) !important;
+        padding-bottom: 0.6rem !important;
+        margin-bottom: 0.35rem;
+    }
+    .research-responsive-table td[data-label="Title & Venue"]::before {
+        display: none !important;
+    }
+    .research-responsive-table td[data-label="Actions"] {
+        justify-content: flex-end !important;
+        gap: 0.5rem;
+    }
+    .research-responsive-table td[data-label="Actions"]::before {
+        margin-right: auto;
+    }
+}
+</style>
+
+<!-- Live Search Feedback Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('[data-table-filter="researchTable"]');
+    const feedbackEl = document.getElementById('researchSearchFeedback');
+    const table = document.getElementById('researchTable');
+    if (!searchInput || !feedbackEl || !table) return;
+
+    const rows = table.querySelectorAll('tbody tr:not(.empty-search-notice)');
+    const totalCount = rows.length;
+
+    searchInput.addEventListener('input', function() {
+        // Delay slightly to let portal.js table filter run
+        setTimeout(function() {
+            let visibleCount = 0;
+            rows.forEach(function(row) {
+                if (row.style.display !== 'none') {
+                    visibleCount++;
+                }
+            });
+            if (searchInput.value.trim() === '') {
+                feedbackEl.textContent = `Showing ${totalCount} of ${totalCount} papers`;
+            } else {
+                feedbackEl.textContent = `Showing ${visibleCount} of ${totalCount} papers`;
+            }
+        }, 50);
+    });
+});
+</script>
 {% endblock %}

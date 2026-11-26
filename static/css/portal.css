@@ -218,6 +218,33 @@ a:hover {
   box-shadow: 0 1px 3px rgba(23, 36, 51, 0.04);
 }
 
+@media (max-width: 768px) {
+  .saas-navbar {
+    padding: 0 0.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .saas-navbar {
+    padding: 0 0.5rem;
+  }
+  .saas-brand {
+    font-size: 1.0rem;
+    gap: 0.35rem;
+  }
+  .session-selector-pill {
+    padding: 0.15rem 0.35rem !important;
+    gap: 0.25rem;
+    font-size: 0.72rem;
+  }
+  .session-selector-pill select {
+    font-size: 0.72rem !important;
+  }
+  .user-profile-trigger {
+    padding: 0.15rem 0.3rem;
+  }
+}
+
 .saas-brand {
   display: flex;
   align-items: center;
@@ -1016,7 +1043,7 @@ body.auth-page .app-content {
 
 .auth-split-card {
   width: 100%;
-  max-width: 1040px;
+  max-width: 980px;
   background-color: var(--surface-base);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-default);
@@ -1027,17 +1054,18 @@ body.auth-page .app-content {
 }
 
 .auth-split-left {
-  flex: 0 0 52%;
-  max-width: 52%;
+  flex: 0 0 50%;
+  max-width: 50%;
   background: linear-gradient(150deg, #0F172A 0%, #1E3A8A 100%);
   color: #FFFFFF;
-  padding: 2.75rem 2.25rem;
+  padding: 2.25rem 2rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
-.auth-split-left .auth-brand-badge {
+.auth-split-left .auth-brand-badge,
+.reg-split-left .auth-brand-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -1049,41 +1077,48 @@ body.auth-page .app-content {
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #FFFFFF;
+  color: #FFFFFF !important;
   margin-bottom: 2rem;
   width: fit-content;
 }
 
-.auth-split-left .auth-brand-heading {
+.auth-split-left .auth-brand-heading,
+.reg-split-left .auth-brand-heading,
+.reg-split-left h2 {
   font-size: 1.55rem; /* ~24px */
   font-weight: 700;
   line-height: 1.3;
-  color: #FFFFFF;
+  color: #FFFFFF !important;
   margin-bottom: 1rem;
   letter-spacing: -0.015em;
 }
 
-.auth-split-left .auth-brand-desc {
+.auth-split-left .auth-brand-desc,
+.reg-split-left .auth-brand-desc,
+.reg-split-left p {
   font-size: 0.86rem; /* ~13.75px */
   line-height: 1.6;
-  color: #CBD5E1;
+  color: #CBD5E1 !important;
   margin-bottom: 1.75rem;
 }
 
-.auth-split-left .auth-pillar-list {
+.auth-split-left .auth-pillar-list,
+.reg-split-left .auth-pillar-list {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
   margin-bottom: 2rem;
 }
 
-.auth-split-left .auth-pillar-item {
+.auth-split-left .auth-pillar-item,
+.reg-split-left .auth-pillar-item {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
 }
 
-.auth-split-left .auth-pillar-icon {
+.auth-split-left .auth-pillar-icon,
+.reg-split-left .auth-pillar-icon {
   width: 28px;
   height: 28px;
   border-radius: 6px;
@@ -1097,32 +1132,35 @@ body.auth-page .app-content {
   margin-top: 1px;
 }
 
-.auth-split-left .auth-pillar-title {
+.auth-split-left .auth-pillar-title,
+.reg-split-left .auth-pillar-title {
   font-size: 0.84rem;
   font-weight: 600;
-  color: #F8FAFC;
+  color: #F8FAFC !important;
   margin-bottom: 0.1rem;
 }
 
-.auth-split-left .auth-pillar-sub {
+.auth-split-left .auth-pillar-sub,
+.reg-split-left .auth-pillar-sub {
   font-size: 0.76rem;
-  color: #94A3B8;
+  color: #94A3B8 !important;
   line-height: 1.4;
 }
 
-.auth-split-left .auth-split-footer-line {
+.auth-split-left .auth-split-footer-line,
+.reg-split-left .auth-split-footer-line {
   padding-top: 1.25rem;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   font-size: 0.76rem;
-  color: #94A3B8;
+  color: #94A3B8 !important;
   font-weight: 500;
   letter-spacing: 0.02em;
 }
 
 .auth-split-right {
-  flex: 0 0 48%;
-  max-width: 48%;
-  padding: 2.25rem 2.25rem;
+  flex: 0 0 50%;
+  max-width: 50%;
+  padding: 2rem 2rem;
   background-color: var(--surface-base);
   display: flex;
   flex-direction: column;
@@ -1554,7 +1592,7 @@ body.auth-page .app-content {
 
 .wizard-progress-bar {
   height: 100%;
-  background-color: var(--teal-primary);
+  background-color: var(--brand-primary);
   transition: width 0.3s ease;
 }
 
@@ -1921,4 +1959,43 @@ body.auth-page .app-content {
   border-radius: var(--radius-md);
   padding: 1.5rem;
   box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   PRINT STYLES (OFFICIAL APPRAISAL DOSSIER)
+   ========================================================================== */
+@media print {
+  .saas-navbar,
+  .app-sidebar,
+  .btn-saas,
+  #sidebarToggle,
+  .session-selector-pill,
+  .user-profile-trigger,
+  .d-print-none {
+    display: none !important;
+  }
+  
+  body, .app-layout, .app-content {
+    background-color: #FFFFFF !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: #000000 !important;
+  }
+  
+  .saas-card {
+    border: 1px solid #CBD5E1 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .saas-table {
+    border: 1px solid #CBD5E1 !important;
+  }
+  
+  .saas-table th {
+    background-color: #F1F5F9 !important;
+    color: #0F172A !important;
+  }
 }

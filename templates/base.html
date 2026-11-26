@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FacultyOS &bull; Academic Performance &amp; CAS Portal{% endblock %}</title>
+    {% load static %}
+
+    <!-- FacultyOS Institutional Favicon (Navy square with white graduation cap) -->
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
+    <link rel="alternate icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
 
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,8 +35,8 @@
 
     <!-- COMMAND-CENTRE TOP APPLICATION HEADER -->
     <header class="saas-navbar">
-        <div class="d-flex align-items-center gap-3 w-100 justify-content-between">
-            <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-1.5 gap-sm-3 w-100 justify-content-between">
+            <div class="d-flex align-items-center gap-1.5 gap-sm-2 gap-md-3">
                 {% if user.is_authenticated %}
                 <button class="btn btn-saas btn-saas-secondary btn-saas-sm d-lg-none" type="button" id="sidebarToggle" aria-label="Toggle Navigation">
                     <i class="bi bi-list fs-6"></i>
@@ -47,32 +53,36 @@
 
                 <!-- Contextual Academic Breadcrumb -->
                 {% if user.is_authenticated %}
-                <div class="d-none d-md-flex align-items-center gap-2 extra-small text-muted ms-2 ps-2 border-start">
+                <div class="d-none d-lg-flex align-items-center gap-2 extra-small text-muted ms-2 ps-2 border-start">
                     <span class="text-uppercase fw-semibold" style="letter-spacing: 0.04em;">
                         {% if is_admin_user %}Admin Console{% else %}Faculty Workspace{% endif %}
                     </span>
                     <span>&bull;</span>
                     <span class="text-dark fw-medium">
-                        {% if 'teaching' in request.path %}Teaching Records (Part A)
-                        {% elif 'research' in request.path %}Research Publications (Part B)
-                        {% elif 'workshops' in request.path %}Workshops &amp; FDPs (Part C)
-                        {% elif 'projects' in request.path %}Sponsored Projects (Part D)
-                        {% elif 'appraisal' in request.path %}Self-Appraisal &amp; CAS
+                        {% if 'teaching' in request.resolver_match.url_name %}Teaching Records (Part A)
+                        {% elif 'research' in request.resolver_match.url_name %}Research Publications (Part B)
+                        {% elif 'workshop' in request.resolver_match.url_name %}Workshops &amp; FDPs (Part C)
+                        {% elif 'project' in request.resolver_match.url_name %}Sponsored Projects (Part D)
+                        {% elif 'appraisal' in request.resolver_match.url_name %}Self-Appraisal &amp; CAS
                         {% elif 'faculty' in request.path and is_admin_user %}Faculty Directory
-                        {% elif 'profile' in request.path %}Faculty Dossier
+                        {% elif request.resolver_match.url_name == 'faculty_profile' or request.resolver_match.url_name == 'faculty_profile_update' %}Faculty Dossier
                         {% else %}Overview{% endif %}
                     </span>
                 </div>
                 {% endif %}
             </div>
 
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-1.5 gap-sm-2">
                 {% if user.is_authenticated %}
-                    <div class="session-selector-pill d-none d-md-flex">
+                    <form method="GET" action="" class="session-selector-pill d-inline-flex align-items-center m-0 py-0.5 py-sm-1 px-1.5 px-sm-2.5" title="Switch Academic Session">
                         <i class="bi bi-calendar3 text-muted"></i>
-                        <span class="text-muted">Session:</span>
-                        <strong>{{ current_academic_year }}</strong>
-                    </div>
+                        <label for="globalSessionYear" class="text-muted extra-small mb-0 d-none d-md-inline">Session:</label>
+                        <select name="year" id="globalSessionYear" class="border-0 bg-transparent fw-bold text-dark font-mono extra-small pe-1" style="cursor: pointer; outline: none; font-size: 0.78rem;" onchange="this.form.submit()" aria-label="Select Academic Session">
+                            {% for yr in available_academic_years %}
+                                <option value="{{ yr }}" {% if yr == current_academic_year or yr == current_year %}selected{% endif %}>{{ yr }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
 
                     <!-- User Account Dropdown -->
                     <div class="dropdown">
@@ -80,10 +90,10 @@
                             <div class="user-avatar-initials">
                                 {% if user.first_name %}{{ user.first_name|slice:":1" }}{% else %}{{ user.username|slice:":1"|upper }}{% endif %}
                             </div>
-                            <span class="d-none d-sm-inline fw-semibold">
+                            <span class="d-none d-lg-inline fw-semibold">
                                 {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
                             </span>
-                            <span class="saas-badge {% if is_admin_user %}saas-badge-blue{% else %}saas-badge-green{% endif %} ms-1">
+                            <span class="saas-badge {% if is_admin_user %}saas-badge-blue{% else %}saas-badge-green{% endif %} ms-1 d-none d-md-inline">
                                 {% if is_admin_user %}Admin{% else %}Faculty{% endif %}
                             </span>
                         </button>
@@ -109,12 +119,20 @@
                         </ul>
                     </div>
                 {% else %}
+                    {% if request.resolver_match.url_name != 'home' %}
                     <a href="{% url 'login' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
                         <i class="bi bi-box-arrow-in-right"></i> Sign In
                     </a>
                     <a href="{% url 'register' %}" class="btn-saas btn-saas-primary btn-saas-sm d-none d-sm-inline-flex">
                         <i class="bi bi-person-plus"></i> Register
                     </a>
+                    {% else %}
+                    <!-- Institutional session indicator (actions provided by hero section) -->
+                    <div class="d-none d-md-flex align-items-center gap-1.5 extra-small text-muted border-start ps-3 ms-2">
+                        <i class="bi bi-mortarboard-fill text-primary"></i>
+                        <span class="fw-semibold text-secondary">Academic Session {{ current_academic_year|default:"2025-2026" }}</span>
+                    </div>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
@@ -179,7 +197,7 @@
                                 </a>
                             </li>
                             <li class="app-sidebar-item">
-                                <a href="{% url 'faculty_profile' %}" class="app-sidebar-link {% if 'profile' in request.path %}active{% endif %}">
+                                <a href="{% url 'faculty_profile' %}" class="app-sidebar-link {% if request.resolver_match.url_name == 'faculty_profile' or request.resolver_match.url_name == 'faculty_profile_update' %}active{% endif %}">
                                     <i class="bi bi-person-badge"></i> Faculty Dossier
                                 </a>
                             </li>
@@ -190,23 +208,27 @@
                         <div class="app-sidebar-label">Performance Records</div>
                         <ul class="app-sidebar-nav">
                             <li class="app-sidebar-item">
-                                <a href="{% url 'teaching_list' %}" class="app-sidebar-link {% if 'teaching' in request.path %}active{% endif %}">
-                                    <i class="bi bi-journal-text"></i> Teaching Records (40)
+                                <a href="{% url 'teaching_list' %}" class="app-sidebar-link {% if 'teaching' in request.resolver_match.url_name %}active{% endif %} d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-journal-text"></i> Teaching Records</span>
+                                    <span class="badge" style="font-size: 0.65rem; background: rgba(255,255,255,0.08); color: #94A3B8; font-weight: 500;">Max 40</span>
                                 </a>
                             </li>
                             <li class="app-sidebar-item">
-                                <a href="{% url 'research_list' %}" class="app-sidebar-link {% if 'research' in request.path %}active{% endif %}">
-                                    <i class="bi bi-book"></i> Research Publications (30)
+                                <a href="{% url 'research_list' %}" class="app-sidebar-link {% if 'research' in request.resolver_match.url_name %}active{% endif %} d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-book"></i> Research Publications</span>
+                                    <span class="badge" style="font-size: 0.65rem; background: rgba(255,255,255,0.08); color: #94A3B8; font-weight: 500;">Max 30</span>
                                 </a>
                             </li>
                             <li class="app-sidebar-item">
-                                <a href="{% url 'workshop_list' %}" class="app-sidebar-link {% if 'workshops' in request.path %}active{% endif %}">
-                                    <i class="bi bi-award"></i> Workshops &amp; FDPs (15)
+                                <a href="{% url 'workshop_list' %}" class="app-sidebar-link {% if 'workshop' in request.resolver_match.url_name %}active{% endif %} d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-award"></i> Workshops &amp; FDPs</span>
+                                    <span class="badge" style="font-size: 0.65rem; background: rgba(255,255,255,0.08); color: #94A3B8; font-weight: 500;">Max 15</span>
                                 </a>
                             </li>
                             <li class="app-sidebar-item">
-                                <a href="{% url 'project_list' %}" class="app-sidebar-link {% if 'projects' in request.path %}active{% endif %}">
-                                    <i class="bi bi-diagram-3"></i> Sponsored Projects (15)
+                                <a href="{% url 'project_list' %}" class="app-sidebar-link {% if 'project' in request.resolver_match.url_name %}active{% endif %} d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-diagram-3"></i> Sponsored Projects</span>
+                                    <span class="badge" style="font-size: 0.65rem; background: rgba(255,255,255,0.08); color: #94A3B8; font-weight: 500;">Max 15</span>
                                 </a>
                             </li>
                         </ul>
@@ -216,7 +238,7 @@
                         <div class="app-sidebar-label">Appraisal</div>
                         <ul class="app-sidebar-nav">
                             <li class="app-sidebar-item">
-                                <a href="{% url 'submit_appraisal' %}" class="app-sidebar-link {% if 'submit' in request.path %}active{% endif %}">
+                                <a href="{% url 'submit_appraisal' %}" class="app-sidebar-link {% if 'appraisal' in request.resolver_match.url_name %}active{% endif %}">
                                     <i class="bi bi-send-check"></i> Submit Annual Appraisal
                                 </a>
                             </li>

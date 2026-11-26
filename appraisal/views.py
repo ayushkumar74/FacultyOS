@@ -140,9 +140,20 @@ def teaching_list(request):
     records = profile.teaching_records.all()
     if year_filter:
         records = records.filter(academic_year=year_filter)
+        active_year = year_filter
+    else:
+        active_year = '2025-2026'
+
+    # Compute actual statutory PBAS Category 1 score using existing scoring engine
+    score_data = calculate_appraisal_score(profile, active_year)
+    category_1_score = score_data.get('teaching_score')
+
     return render(request, 'faculty/teaching_list.html', {
+        'profile': profile,
         'records': records,
         'year_filter': year_filter,
+        'active_year': active_year,
+        'category_1_score': category_1_score,
         'available_years': AVAILABLE_ACADEMIC_YEARS,
     })
 
@@ -197,9 +208,20 @@ def research_list(request):
     records = profile.research_publications.all()
     if year_filter:
         records = records.filter(academic_year=year_filter)
+        active_year = year_filter
+    else:
+        active_year = '2025-2026'
+
+    # Compute actual statutory PBAS Category 2 score using existing scoring engine
+    score_data = calculate_appraisal_score(profile, active_year)
+    category_2_score = score_data.get('research_score')
+
     return render(request, 'faculty/research_list.html', {
+        'profile': profile,
         'records': records,
         'year_filter': year_filter,
+        'active_year': active_year,
+        'category_2_score': category_2_score,
         'available_years': AVAILABLE_ACADEMIC_YEARS,
     })
 
@@ -254,9 +276,20 @@ def workshop_list(request):
     records = profile.workshops_trainings.all()
     if year_filter:
         records = records.filter(academic_year=year_filter)
+        active_year = year_filter
+    else:
+        active_year = '2025-2026'
+
+    # Compute actual statutory PBAS Category 3 score using existing scoring engine
+    score_data = calculate_appraisal_score(profile, active_year)
+    category_3_score = score_data.get('workshop_score')
+
     return render(request, 'faculty/workshop_list.html', {
+        'profile': profile,
         'records': records,
         'year_filter': year_filter,
+        'active_year': active_year,
+        'category_3_score': category_3_score,
         'available_years': AVAILABLE_ACADEMIC_YEARS,
     })
 
@@ -457,7 +490,20 @@ def submit_appraisal(request):
 def appraisal_detail(request, pk):
     profile = request.user.faculty_profile
     appraisal = get_object_or_404(AppraisalSubmission, pk=pk, faculty=profile)
-    return render(request, 'faculty/appraisal_detail.html', {'appraisal': appraisal})
+    
+    teaching_records = profile.teaching_records.filter(academic_year=appraisal.academic_year)
+    research_records = profile.research_publications.filter(academic_year=appraisal.academic_year)
+    workshop_records = profile.workshops_trainings.filter(academic_year=appraisal.academic_year)
+    project_records = profile.completed_projects.filter(academic_year=appraisal.academic_year)
+    
+    return render(request, 'faculty/appraisal_detail.html', {
+        'appraisal': appraisal,
+        'profile': profile,
+        'teaching_records': teaching_records,
+        'research_records': research_records,
+        'workshop_records': workshop_records,
+        'project_records': project_records,
+    })
 
 
 @faculty_required

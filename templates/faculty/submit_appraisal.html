@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load appraisal_tags %}
 
 {% block title %}Submit Annual Self-Appraisal &bull; FacultyOS Platform{% endblock %}
 
@@ -232,7 +233,7 @@
                                     <tr>
                                         <td><strong>{{ p.title }}</strong></td>
                                         <td>{{ p.funding_agency }}</td>
-                                        <td class="text-success font-mono">₹ {{ p.grant_amount|floatformat:2 }}</td>
+                                        <td class="text-success font-mono">₹ {{ p.grant_amount|inr_currency }}</td>
                                         <td>{{ p.get_role_display }}</td>
                                         <td><span class="saas-badge saas-badge-neutral">{{ p.status }}</span></td>
                                     </tr>

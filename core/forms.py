@@ -74,9 +74,24 @@ class FacultyRegistrationForm(forms.ModelForm):
             'highest_qualification': forms.Select(attrs={'class': 'form-select'}),
             'specialization': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Artificial Intelligence, VLSI Design'}),
             'date_of_joining': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'experience_years': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0', 'placeholder': '0.0'}),
+            'experience_years': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0', 'placeholder': 'e.g. 5.0'}),
             'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+91 9876543210'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Configure neutral unselected placeholders for dropdown fields
+        self.fields['department'].choices = [('', 'Select Department')] + list(FacultyProfile.DEPARTMENT_CHOICES)
+        self.fields['designation'].choices = [('', 'Select Designation')] + list(FacultyProfile.DESIGNATION_CHOICES)
+        self.fields['highest_qualification'].choices = [('', 'Select Highest Academic Degree')] + list(FacultyProfile.QUALIFICATION_CHOICES)
+
+        # For unbound new registrations (no instance or empty instance), ensure unselected/empty initial state
+        if not self.instance or not self.instance.pk:
+            self.fields['department'].initial = ''
+            self.fields['designation'].initial = ''
+            self.fields['highest_qualification'].initial = ''
+            self.fields['date_of_joining'].initial = None
+            self.fields['experience_years'].initial = None
 
     def clean_username(self):
         username = self.cleaned_data.get('username', '').strip()

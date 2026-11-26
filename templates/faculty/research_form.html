@@ -4,22 +4,32 @@
 
 {% block content %}
 <div class="container py-3" style="max-width: 860px;">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
-            <div class="saas-badge saas-badge-blue mb-1">Research &bull; Up to 30 Pts</div>
-            <h1 class="h5 fw-bold mb-0">{{ title }}</h1>
-            <p class="text-muted extra-small mb-0">Record publications in SCI/Scopus, UGC-CARE, IEEE/ACM conferences or patents</p>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-green" style="background-color: #ECFDF5; color: #065F46; font-weight: 600;">
+                    Research &bull; Category 2 (Max 30 Pts)
+                </span>
+                {% if user_faculty_profile %}
+                    <span class="employee-id-pill font-mono" title="Faculty Employee ID">{{ user_faculty_profile.employee_id }}</span>
+                {% endif %}
+            </div>
+            <h1 class="h5 fw-bold mb-0 text-dark">{{ title }}</h1>
+            <p class="text-muted extra-small mb-0">Record peer-reviewed journal papers, conference proceedings, patents, and book chapters</p>
         </div>
         <a href="{% url 'research_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
-            <i class="bi bi-arrow-left"></i> Back to Publications
+            <i class="bi bi-arrow-left me-1"></i> Back to Repository
         </a>
     </div>
 
-    <div class="saas-card">
+    <!-- Main Form Card -->
+    <div class="saas-card shadow-sm border">
         <div class="saas-card-body p-4">
-            <form method="POST" novalidate>
+            <form method="POST" novalidate id="researchPublicationForm">
                 {% csrf_token %}
 
+                <!-- Form Validation Error Summary -->
                 {% if form.errors %}
                     <div class="alert alert-danger py-2 px-3 extra-small rounded-2 mb-4" role="alert">
                         <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Please correct the following errors:</div>
@@ -36,71 +46,224 @@
                     </div>
                 {% endif %}
 
-                <!-- Classification & Title -->
-                <div class="form-section-group">
-                    <div class="form-section-title"><i class="bi bi-book text-primary me-1"></i> Publication Details</div>
-                    <div class="form-section-desc">Session, indexing category, and full manuscript title</div>
+                <!-- 1. Publication Details -->
+                <div class="form-section-group mb-4">
+                    <div class="form-section-title pb-1 border-bottom mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-journal-text text-primary"></i>
+                        <span class="fw-bold text-dark fs-6">1. Publication Details</span>
+                        <span class="text-muted extra-small fw-normal ms-auto">Title, Venue &amp; Session</span>
+                    </div>
 
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="saas-form-label">Academic Year <span class="text-danger">*</span></label>
+                        <div class="col-md-4">
+                            <label class="saas-form-label" for="{{ form.academic_year.id_for_label }}">
+                                Academic Year <span class="text-danger">*</span>
+                            </label>
                             {{ form.academic_year }}
+                            <div class="saas-form-helper">Official appraisal academic session</div>
+                            {% if form.academic_year.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.academic_year.errors.0 }}</div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-6">
-                            <label class="saas-form-label">Category / Indexing <span class="text-danger">*</span></label>
-                            {{ form.publication_type }}
-                        </div>
-                        <div class="col-md-12">
-                            <label class="saas-form-label">Publication / Patent Title <span class="text-danger">*</span></label>
-                            {{ form.title }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="saas-form-label">Journal / Conference / Publisher Name <span class="text-danger">*</span></label>
+
+                        <div class="col-md-8">
+                            <label class="saas-form-label" for="{{ form.journal_conference_name.id_for_label }}">
+                                Journal / Conference / Publisher Name <span class="text-danger">*</span>
+                            </label>
                             {{ form.journal_conference_name }}
+                            <div class="saas-form-helper">Official publishing venue (e.g. IEEE Transactions, ICSE 2025, Springer)</div>
+                            {% if form.journal_conference_name.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.journal_conference_name.errors.0 }}</div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-6">
-                            <label class="saas-form-label">Author Role <span class="text-danger">*</span></label>
-                            {{ form.author_role }}
+
+                        <div class="col-12">
+                            <label class="saas-form-label" for="{{ form.title.id_for_label }}">
+                                Publication / Patent Title <span class="text-danger">*</span>
+                            </label>
+                            {{ form.title }}
+                            <div class="saas-form-helper">Complete approved manuscript, paper, or patent title</div>
+                            {% if form.title.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.title.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="saas-form-label" for="{{ form.publication_date.id_for_label }}">
+                                Date of Publication <span class="text-danger">*</span>
+                            </label>
+                            {{ form.publication_date }}
+                            <div class="saas-form-helper">Official publication or grant date</div>
+                            {% if form.publication_date.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.publication_date.errors.0 }}</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
 
-                <!-- Citation & Identification -->
-                <div class="form-section-group">
-                    <div class="form-section-title"><i class="bi bi-award text-primary me-1"></i> Identifiers &amp; Citations</div>
-                    <div class="form-section-desc">ISSN/ISBN, publication date, impact factor, and DOI link</div>
+                <!-- 2. Publication Classification & Authorship -->
+                <div class="form-section-group mb-4">
+                    <div class="form-section-title pb-1 border-bottom mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-award text-primary"></i>
+                        <span class="fw-bold text-dark fs-6">2. Publication Classification &amp; Authorship</span>
+                        <span class="text-muted extra-small fw-normal ms-auto">Statutory PBAS Weighting</span>
+                    </div>
 
                     <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="saas-form-label">ISSN / ISBN / Patent Number</label>
-                            {{ form.issn_isbn }}
+                        <div class="col-md-6">
+                            <label class="saas-form-label" for="{{ form.publication_type.id_for_label }}">
+                                Publication Category / Indexing <span class="text-danger">*</span>
+                            </label>
+                            {{ form.publication_type }}
+                            <div class="saas-form-helper">Statutory indexing tier (determines base points)</div>
+                            {% if form.publication_type.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.publication_type.errors.0 }}</div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-4">
-                            <label class="saas-form-label">Date of Publication <span class="text-danger">*</span></label>
-                            {{ form.publication_date }}
+
+                        <div class="col-md-6">
+                            <label class="saas-form-label" for="{{ form.author_role.id_for_label }}">
+                                Author Role <span class="text-danger">*</span>
+                            </label>
+                            {{ form.author_role }}
+                            <div class="saas-form-helper">Authorship weighting (First/Corresponding: 100%, Co-Author: 70%)</div>
+                            {% if form.author_role.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.author_role.errors.0 }}</div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-4">
-                            <label class="saas-form-label">Indexing / Impact Factor</label>
-                            {{ form.indexing_details }}
-                        </div>
-                        <div class="col-md-12">
-                            <label class="saas-form-label">DOI / Direct Web Link</label>
-                            {{ form.doi_or_url }}
-                            <div class="saas-form-helper">Official DOI or publisher URL for committee verification</div>
+
+                        <!-- Live Category 2 PBAS Credit Preview Widget -->
+                        <div class="col-12">
+                            <div class="p-3 rounded-2 border d-flex align-items-center justify-content-between flex-wrap gap-2" style="background-color: var(--surface-subtle); border-color: var(--border-default) !important;">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <i class="bi bi-calculator-fill text-success fs-6"></i>
+                                        <span class="extra-small fw-bold text-dark text-uppercase tracking-wider">Estimated PBAS Category 2 Credit:</span>
+                                        <span id="liveCreditBadge" class="saas-badge saas-badge-green font-mono fw-bold">-- pts</span>
+                                    </div>
+                                    <div id="liveCreditBreakdown" class="extra-small text-muted font-mono">
+                                        Select category and author role to preview points
+                                    </div>
+                                </div>
+                                <div class="extra-small text-muted fst-italic text-end" style="max-width: 280px; line-height: 1.35;">
+                                    <i class="bi bi-info-circle me-1"></i> Client-side statutory estimate. Cumulative Category 2 score is capped at 30.0 points.
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                <!-- 3. Identifiers & Citations -->
+                <div class="form-section-group mb-4">
+                    <div class="form-section-title pb-1 border-bottom mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-bookmark-star text-primary"></i>
+                        <span class="fw-bold text-dark fs-6">3. Identifiers &amp; Citations</span>
+                        <span class="text-muted extra-small fw-normal ms-auto">Verification Metadata</span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="saas-form-label" for="{{ form.issn_isbn.id_for_label }}">
+                                ISSN / ISBN / Patent Number
+                            </label>
+                            {{ form.issn_isbn }}
+                            <div class="saas-form-helper">Journal ISSN, Book ISBN, or Patent Application / Grant Number</div>
+                            {% if form.issn_isbn.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.issn_isbn.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="saas-form-label" for="{{ form.indexing_details.id_for_label }}">
+                                Indexing Details / Impact Factor
+                            </label>
+                            {{ form.indexing_details }}
+                            <div class="saas-form-helper">e.g. Scopus Q1, Web of Science, Clarivate IF 4.5, Citations</div>
+                            {% if form.indexing_details.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.indexing_details.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="saas-form-label" for="{{ form.doi_or_url.id_for_label }}">
+                                DOI / Direct Web Link
+                            </label>
+                            {{ form.doi_or_url }}
+                            <div class="saas-form-helper">Official DOI or publisher URL for verification committee review</div>
+                            {% if form.doi_or_url.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.doi_or_url.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Action Buttons -->
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-4">
                     <a href="{% url 'research_list' %}" class="btn-saas btn-saas-secondary">
-                        <i class="bi bi-arrow-left"></i> Cancel
+                        <i class="bi bi-arrow-left me-1"></i> Cancel
                     </a>
                     <button type="submit" class="btn-saas btn-saas-primary">
-                        <i class="bi bi-check2-circle"></i> Save Publication
+                        <i class="bi bi-check2-circle me-1"></i> Save Publication
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<!-- Client-Side Live PBAS Category 2 Credit Preview Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const pubTypeSelect = document.getElementById('id_publication_type');
+    const authorRoleSelect = document.getElementById('id_author_role');
+    const creditBadge = document.getElementById('liveCreditBadge');
+    const creditBreakdown = document.getElementById('liveCreditBreakdown');
+
+    if (!pubTypeSelect || !authorRoleSelect || !creditBadge || !creditBreakdown) return;
+
+    // Statutory point weights mirroring appraisal/scoring.py
+    const PUB_BASE_RATES = {
+        'SCI_SCOPUS': { points: 10.0, label: 'SCI / Scopus Indexed Journal' },
+        'PATENT': { points: 10.0, label: 'Patent (Published / Granted)' },
+        'UGC_CARE': { points: 7.0, label: 'UGC-CARE Refereed Journal' },
+        'INT_CONF': { points: 5.0, label: 'International Conference (IEEE/ACM)' },
+        'BOOK_CHAPTER': { points: 4.0, label: 'Book / Edited Book Chapter' },
+        'NAT_CONF': { points: 3.0, label: 'National Conference' }
+    };
+
+    const ROLE_MULTIPLIERS = {
+        'First Author': { mult: 1.00, label: 'First Author (100%)' },
+        'Corresponding Author': { mult: 1.00, label: 'Corresponding Author (100%)' },
+        'Co-Author': { mult: 0.70, label: 'Co-Author (70%)' }
+    };
+
+    function updateCreditPreview() {
+        const typeVal = pubTypeSelect.value;
+        const roleVal = authorRoleSelect.value;
+
+        if (!typeVal || !roleVal || !PUB_BASE_RATES[typeVal] || !ROLE_MULTIPLIERS[roleVal]) {
+            creditBadge.className = 'saas-badge saas-badge-neutral font-mono';
+            creditBadge.textContent = '-- pts';
+            creditBreakdown.textContent = 'Select category and author role to preview points';
+            return;
+        }
+
+        const typeInfo = PUB_BASE_RATES[typeVal];
+        const roleInfo = ROLE_MULTIPLIERS[roleVal];
+
+        const estimatedPoints = (typeInfo.points * roleInfo.mult).toFixed(1);
+
+        creditBadge.className = 'saas-badge saas-badge-green font-mono fw-bold fs-6';
+        creditBadge.textContent = `+${estimatedPoints} pts`;
+
+        creditBreakdown.innerHTML = `<span class="text-dark fw-semibold">${typeInfo.label}</span> (${typeInfo.points.toFixed(1)} base) &times; <span class="text-dark fw-semibold">${roleInfo.label}</span> = <strong class="text-success">${estimatedPoints} pts</strong>`;
+    }
+
+    pubTypeSelect.addEventListener('change', updateCreditPreview);
+    authorRoleSelect.addEventListener('change', updateCreditPreview);
+
+    // Initial run on page load (essential for pre-filled values on Edit form)
+    updateCreditPreview();
+});
+</script>
 {% endblock %}

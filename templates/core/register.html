@@ -14,7 +14,7 @@
                     <i class="bi bi-mortarboard-fill"></i> FacultyOS Institutional
                 </div>
 
-                <h2 class="auth-brand-heading mb-2">Join the Faculty Network</h2>
+                <h2 class="auth-brand-heading mb-2">Join the Faculty Portal</h2>
 
                 <p class="auth-brand-desc mb-4">
                     Create your verified institutional profile to maintain instructional records, submit annual performance appraisals, and track Career Advancement Scheme (CAS) eligibility.
@@ -55,7 +55,7 @@
         </div>
 
         <!-- ========================================================= -->
-        <!-- RIGHT PANEL: Existing 3-Step Wizard Architecture          -->
+        <!-- RIGHT PANEL: 3-Step Wizard Architecture                   -->
         <!-- ========================================================= -->
         <div class="reg-split-right">
             <!-- Header bar with step counter -->
@@ -71,7 +71,7 @@
                 </div>
             </div>
 
-            <!-- Animated 3-Step Progress Indicator -->
+            <!-- 3-Step Progress Indicator -->
             <div class="wizard-stepper-container mb-3">
                 <div class="wizard-progress-track">
                     <div class="wizard-progress-bar" id="wizardProgressBar" style="width: 0%;"></div>
@@ -268,22 +268,24 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="id_date_of_joining" class="saas-form-label">Date of Joining Institution</label>
+                            <label for="id_date_of_joining" class="saas-form-label">Date of Joining Institution <span class="text-danger">*</span></label>
                             <div class="reg-input-wrap">
                                 <span class="reg-input-icon"><i class="bi bi-calendar-event"></i></span>
                                 {{ form.date_of_joining }}
                             </div>
+                            <div class="form-text extra-small text-muted mt-1">Official date of joining university service.</div>
                             {% if form.date_of_joining.errors %}
                                 <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.date_of_joining.errors.0 }}</div>
                             {% endif %}
                         </div>
 
                         <div class="col-md-6">
-                            <label for="id_experience_years" class="saas-form-label">Teaching Experience (Years)</label>
+                            <label for="id_experience_years" class="saas-form-label">Teaching Experience (Years) <span class="text-danger">*</span></label>
                             <div class="reg-input-wrap">
                                 <span class="reg-input-icon"><i class="bi bi-clock-history"></i></span>
                                 {{ form.experience_years }}
                             </div>
+                            <div class="form-text extra-small text-muted mt-1">Total completed years of academic teaching experience (e.g. 5.0).</div>
                             {% if form.experience_years.errors %}
                                 <div class="text-danger extra-small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.experience_years.errors.0 }}</div>
                             {% endif %}
@@ -413,6 +415,12 @@
                             <div class="col-6 col-md-3">
                                 <span class="text-muted">Specialization:</span> <strong id="reviewSpec" class="text-dark">&mdash;</strong>
                             </div>
+                            <div class="col-6 col-md-3">
+                                <span class="text-muted">Joining Date:</span> <strong id="reviewDoj" class="text-dark">&mdash;</strong>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <span class="text-muted">Experience:</span> <strong id="reviewExp" class="text-dark">&mdash;</strong>
+                            </div>
                         </div>
                     </div>
 
@@ -448,9 +456,15 @@
     function showStep(step) {
         currentStep = step;
 
-        document.querySelectorAll('.wizard-pane').forEach(el => el.classList.add('d-none'));
+        document.querySelectorAll('.wizard-pane').forEach(el => {
+            el.classList.remove('active');
+            el.classList.add('d-none');
+        });
         const activePane = document.getElementById(`step${step}Pane`);
-        if (activePane) activePane.classList.remove('d-none');
+        if (activePane) {
+            activePane.classList.add('active');
+            activePane.classList.remove('d-none');
+        }
 
         const badgeCounter = document.getElementById('currentStepBadge');
         if (badgeCounter) badgeCounter.textContent = step;
@@ -512,15 +526,49 @@
             maxCompletedStep = Math.max(maxCompletedStep, 1);
             showStep(2);
         } else if (targetStep === 3) {
-            const empId = document.getElementById('id_employee_id')?.value.trim();
-            const dept = document.getElementById('id_department')?.value.trim();
-            const desig = document.getElementById('id_designation')?.value.trim();
-            const qual = document.getElementById('id_highest_qualification')?.value.trim();
-            const spec = document.getElementById('id_specialization')?.value.trim();
+            const empIdInput = document.getElementById('id_employee_id');
+            const deptSelect = document.getElementById('id_department');
+            const desigSelect = document.getElementById('id_designation');
+            const qualSelect = document.getElementById('id_highest_qualification');
+            const specInput = document.getElementById('id_specialization');
+            const dojInput = document.getElementById('id_date_of_joining');
+            const expInput = document.getElementById('id_experience_years');
 
-            if (!empId || !dept || !desig || !qual || !spec) {
-                alertMsg.textContent = 'Please complete all required fields (Employee ID, Department, Designation, Qualification, Specialization) to continue.';
+            const empId = empIdInput?.value.trim();
+            const dept = deptSelect?.value.trim();
+            const desig = desigSelect?.value.trim();
+            const qual = qualSelect?.value.trim();
+            const spec = specInput?.value.trim();
+            const doj = dojInput?.value.trim();
+            const exp = expInput?.value.trim();
+
+            // Clear previous highlight states
+            [empIdInput, deptSelect, desigSelect, qualSelect, specInput, dojInput, expInput].forEach(el => {
+                if (el) el.classList.remove('is-invalid');
+            });
+
+            const missing = [];
+            if (!empId) { missing.push('Employee ID'); empIdInput?.classList.add('is-invalid'); }
+            if (!dept) { missing.push('Department'); deptSelect?.classList.add('is-invalid'); }
+            if (!desig) { missing.push('Designation'); desigSelect?.classList.add('is-invalid'); }
+            if (!qual) { missing.push('Qualification'); qualSelect?.classList.add('is-invalid'); }
+            if (!spec) { missing.push('Specialization'); specInput?.classList.add('is-invalid'); }
+            if (!doj) { missing.push('Date of Joining'); dojInput?.classList.add('is-invalid'); }
+            if (!exp) { missing.push('Teaching Experience'); expInput?.classList.add('is-invalid'); }
+
+            if (missing.length > 0) {
+                alertMsg.textContent = `Please complete all required fields (${missing.join(', ')}) to continue.`;
                 alertBox.classList.remove('d-none');
+
+                // Focus first invalid field
+                if (!empId && empIdInput) empIdInput.focus();
+                else if (!dept && deptSelect) deptSelect.focus();
+                else if (!desig && desigSelect) desigSelect.focus();
+                else if (!qual && qualSelect) qualSelect.focus();
+                else if (!spec && specInput) specInput.focus();
+                else if (!doj && dojInput) dojInput.focus();
+                else if (!exp && expInput) expInput.focus();
+
                 return;
             }
 
@@ -536,15 +584,17 @@
         const em = document.getElementById('id_email')?.value.trim() || '';
         const emp = document.getElementById('id_employee_id')?.value.trim() || '';
         const spec = document.getElementById('id_specialization')?.value.trim() || '';
+        const doj = document.getElementById('id_date_of_joining')?.value.trim() || '';
+        const exp = document.getElementById('id_experience_years')?.value.trim() || '';
 
         const deptSelect = document.getElementById('id_department');
-        const deptText = deptSelect ? deptSelect.options[deptSelect.selectedIndex]?.text : '';
+        const deptText = (deptSelect && deptSelect.value) ? deptSelect.options[deptSelect.selectedIndex]?.text : '';
 
         const desigSelect = document.getElementById('id_designation');
-        const desigText = desigSelect ? desigSelect.options[desigSelect.selectedIndex]?.text : '';
+        const desigText = (desigSelect && desigSelect.value) ? desigSelect.options[desigSelect.selectedIndex]?.text : '';
 
         const qualSelect = document.getElementById('id_highest_qualification');
-        const qualText = qualSelect ? qualSelect.options[qualSelect.selectedIndex]?.text : '';
+        const qualText = (qualSelect && qualSelect.value) ? qualSelect.options[qualSelect.selectedIndex]?.text : '';
 
         document.getElementById('reviewFullName').textContent = `${fn} ${ln}`.trim() || '—';
         document.getElementById('reviewUsername').textContent = un || '—';
@@ -554,6 +604,12 @@
         document.getElementById('reviewDesig').textContent = desigText || '—';
         document.getElementById('reviewQual').textContent = qualText || '—';
         document.getElementById('reviewSpec').textContent = spec || '—';
+
+        const reviewDojEl = document.getElementById('reviewDoj');
+        if (reviewDojEl) reviewDojEl.textContent = doj || '—';
+
+        const reviewExpEl = document.getElementById('reviewExp');
+        if (reviewExpEl) reviewExpEl.textContent = exp ? `${exp} yrs` : '—';
     }
 
     // Password Toggles with smooth animation
@@ -680,7 +736,7 @@
     // Auto-navigate to step with server errors
     document.addEventListener('DOMContentLoaded', function() {
         const hasStep3Error = {{ form.password.errors|yesno:"true,false" }} || {{ form.confirm_password.errors|yesno:"true,false" }};
-        const hasStep2Error = {{ form.employee_id.errors|yesno:"true,false" }} || {{ form.department.errors|yesno:"true,false" }} || {{ form.designation.errors|yesno:"true,false" }} || {{ form.highest_qualification.errors|yesno:"true,false" }} || {{ form.specialization.errors|yesno:"true,false" }};
+        const hasStep2Error = {{ form.employee_id.errors|yesno:"true,false" }} || {{ form.department.errors|yesno:"true,false" }} || {{ form.designation.errors|yesno:"true,false" }} || {{ form.highest_qualification.errors|yesno:"true,false" }} || {{ form.specialization.errors|yesno:"true,false" }} || {{ form.date_of_joining.errors|yesno:"true,false" }} || {{ form.experience_years.errors|yesno:"true,false" }} || {{ form.contact_number.errors|yesno:"true,false" }};
         const hasStep1Error = {{ form.first_name.errors|yesno:"true,false" }} || {{ form.last_name.errors|yesno:"true,false" }} || {{ form.username.errors|yesno:"true,false" }} || {{ form.email.errors|yesno:"true,false" }};
 
         if (hasStep3Error) {

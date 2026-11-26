@@ -48,7 +48,7 @@
             </div>
 
             <div class="auth-split-footer-line">
-                Academic Records &bull; PBAS Assessment &bull; CAS Progression
+                Teaching (40) &bull; Research (30) &bull; Workshops (15) &bull; Projects (15)
             </div>
         </div>
 
@@ -64,8 +64,8 @@
                     </div>
                     <span class="auth-minimal-brand mb-0">FacultyOS Portal</span>
                 </div>
-                <h1 class="auth-minimal-title mb-1" style="font-size: 1.25rem;">Welcome Back</h1>
-                <p class="auth-minimal-subhead">Sign in to access your faculty workspace.</p>
+                <h1 class="auth-minimal-title mb-1" style="font-size: 1.25rem;">Sign In to Portal</h1>
+                <p class="auth-minimal-subhead">Enter your institutional credentials to access your faculty workspace.</p>
             </div>
 
             <!-- Authentication Form -->
@@ -139,7 +139,7 @@
                 <!-- Sign In Submit Button -->
                 <button type="submit" class="auth-submit-btn" id="submitLoginBtn">
                     <span class="btn-spinner d-none" id="btnSpinner"></span>
-                    <span class="btn-text" id="btnText">Sign In</span>
+                    <span class="btn-text" id="btnText">Sign In to Portal</span>
                     <i class="bi bi-arrow-right btn-icon-arrow" id="btnIcon"></i>
                 </button>
             </form>
@@ -247,7 +247,7 @@
             pInput.classList.remove('is-invalid');
 
             if (feedback && feedbackMsg) {
-                feedbackMsg.innerHTML = '<strong>' + roleName + '</strong> credentials loaded (<code class="text-primary">' + username + '</code>). Click <strong>Sign In</strong> to continue.';
+                feedbackMsg.innerHTML = '<strong>' + roleName + '</strong> credentials loaded (<code class="text-primary">' + username + '</code>). Click <strong>Sign In to Portal</strong> to continue.';
                 feedback.classList.remove('d-none');
                 feedback.classList.add('d-flex');
             }

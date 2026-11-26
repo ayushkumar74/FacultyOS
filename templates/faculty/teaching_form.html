@@ -4,22 +4,32 @@
 
 {% block content %}
 <div class="container py-3" style="max-width: 860px;">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
-            <div class="saas-badge saas-badge-blue mb-1">Teaching &bull; Up to 40 Pts</div>
-            <h1 class="h5 fw-bold mb-0">{{ title }}</h1>
-            <p class="text-muted extra-small mb-0">Record instructional hours, student results, and feedback ratings</p>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue" style="background-color: #EFF6FF; color: #1E3A8A; font-weight: 600;">
+                    Teaching Records &bull; Category 1 (Max 40 Pts)
+                </span>
+                {% if user_faculty_profile %}
+                    <span class="employee-id-pill font-mono" title="Faculty Employee ID">{{ user_faculty_profile.employee_id }}</span>
+                {% endif %}
+            </div>
+            <h1 class="h5 fw-bold mb-0 text-dark">{{ title }}</h1>
+            <p class="text-muted extra-small mb-0">Record curriculum lecture hours, examination results, and pedagogical innovations</p>
         </div>
         <a href="{% url 'teaching_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
-            <i class="bi bi-arrow-left"></i> Back to Teaching List
+            <i class="bi bi-arrow-left me-1"></i> Back to Teaching List
         </a>
     </div>
 
-    <div class="saas-card">
+    <!-- Main Form Card -->
+    <div class="saas-card shadow-sm border">
         <div class="saas-card-body p-4">
-            <form method="POST" novalidate>
+            <form method="POST" novalidate id="teachingRecordForm">
                 {% csrf_token %}
 
+                <!-- Form Validation Error Summary -->
                 {% if form.errors %}
                     <div class="alert alert-danger py-2 px-3 extra-small rounded-2 mb-4" role="alert">
                         <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Please correct the following errors:</div>
@@ -36,79 +46,239 @@
                     </div>
                 {% endif %}
 
-                <!-- Course Identification -->
-                <div class="form-section-group">
-                    <div class="form-section-title"><i class="bi bi-journal-text text-primary me-1"></i> Course Identification</div>
-                    <div class="form-section-desc">Academic session, semester, course code, and title</div>
+                <!-- 1. Course Identification -->
+                <div class="form-section-group mb-4">
+                    <div class="form-section-title pb-1 border-bottom mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-journal-text text-primary"></i>
+                        <span class="fw-bold text-dark fs-6">1. Course Identification</span>
+                        <span class="text-muted extra-small fw-normal ms-auto">Curriculum &amp; Session Metadata</span>
+                    </div>
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="saas-form-label">Academic Year <span class="text-danger">*</span></label>
+                            <label class="saas-form-label" for="{{ form.academic_year.id_for_label }}">
+                                Academic Year <span class="text-danger">*</span>
+                            </label>
                             {{ form.academic_year }}
+                            <div class="saas-form-helper">Official university appraisal academic session</div>
+                            {% if form.academic_year.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.academic_year.errors.0 }}</div>
+                            {% endif %}
                         </div>
+
                         <div class="col-md-6">
-                            <label class="saas-form-label">Semester <span class="text-danger">*</span></label>
+                            <label class="saas-form-label" for="{{ form.semester.id_for_label }}">
+                                Semester Term <span class="text-danger">*</span>
+                            </label>
                             {{ form.semester }}
+                            <div class="saas-form-helper">Term grouping (Odd or Even semester)</div>
+                            {% if form.semester.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.semester.errors.0 }}</div>
+                            {% endif %}
                         </div>
+
                         <div class="col-md-4">
-                            <label class="saas-form-label">Subject Code <span class="text-danger">*</span></label>
+                            <label class="saas-form-label" for="{{ form.subject_code.id_for_label }}">
+                                Subject Code <span class="text-danger">*</span>
+                            </label>
                             {{ form.subject_code }}
+                            <div class="saas-form-helper">Course identifier (e.g., CS-501, IT-304)</div>
+                            {% if form.subject_code.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.subject_code.errors.0 }}</div>
+                            {% endif %}
                         </div>
+
                         <div class="col-md-5">
-                            <label class="saas-form-label">Subject Title <span class="text-danger">*</span></label>
+                            <label class="saas-form-label" for="{{ form.subject_name.id_for_label }}">
+                                Subject Title <span class="text-danger">*</span>
+                            </label>
                             {{ form.subject_name }}
+                            <div class="saas-form-helper">Full approved curriculum course title</div>
+                            {% if form.subject_name.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.subject_name.errors.0 }}</div>
+                            {% endif %}
                         </div>
+
                         <div class="col-md-3">
-                            <label class="saas-form-label">Course Type <span class="text-danger">*</span></label>
+                            <label class="saas-form-label" for="{{ form.course_type.id_for_label }}">
+                                Course Type <span class="text-danger">*</span>
+                            </label>
                             {{ form.course_type }}
+                            <div class="saas-form-helper">Instructional format</div>
+                            {% if form.course_type.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.course_type.errors.0 }}</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
 
-                <!-- Delivery Metrics -->
-                <div class="form-section-group">
-                    <div class="form-section-title"><i class="bi bi-clock-history text-primary me-1"></i> Instructional Delivery &amp; Results</div>
-                    <div class="form-section-desc">Class hours compliance, student pass rates, and evaluation rating</div>
+                <!-- 2. Instructional Delivery & Results -->
+                <div class="form-section-group mb-4">
+                    <div class="form-section-title pb-1 border-bottom mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-clock-history text-primary"></i>
+                        <span class="fw-bold text-dark fs-6">2. Instructional Delivery &amp; Results</span>
+                        <span class="text-muted extra-small fw-normal ms-auto">Delivery Compliance &amp; Outcome Metrics</span>
+                    </div>
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="saas-form-label">Scheduled Hours <span class="text-danger">*</span></label>
+                            <label class="saas-form-label" for="{{ form.scheduled_hours.id_for_label }}">
+                                Scheduled Hours <span class="text-danger">*</span>
+                            </label>
                             {{ form.scheduled_hours }}
-                            <div class="saas-form-helper">Total curriculum contact hours scheduled</div>
+                            <div class="saas-form-helper">Target curriculum contact hours allocated in syllabus</div>
+                            {% if form.scheduled_hours.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.scheduled_hours.errors.0 }}</div>
+                            {% endif %}
                         </div>
+
                         <div class="col-md-6">
-                            <label class="saas-form-label">Conducted Hours <span class="text-danger">*</span></label>
+                            <label class="saas-form-label" for="{{ form.conducted_hours.id_for_label }}">
+                                Conducted Hours <span class="text-danger">*</span>
+                            </label>
                             {{ form.conducted_hours }}
-                            <div class="saas-form-helper">Actual classes held (syllabus compliance)</div>
+                            <div class="saas-form-helper">Actual lecture/practical hours delivered</div>
+                            {% if form.conducted_hours.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.conducted_hours.errors.0 }}</div>
+                            {% endif %}
                         </div>
+
+                        <!-- Live Delivery Compliance Preview Widget -->
+                        <div class="col-12">
+                            <div class="p-2.5 px-3 rounded-2 border d-flex align-items-center justify-content-between flex-wrap gap-2" style="background-color: var(--surface-subtle); border-color: var(--border-default) !important;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-speedometer2 text-primary fs-6"></i>
+                                    <span class="extra-small fw-bold text-dark">Live Delivery Compliance Preview:</span>
+                                    <span id="liveComplianceBadge" class="saas-badge saas-badge-neutral font-mono">--%</span>
+                                </div>
+                                <div class="extra-small text-muted fst-italic">
+                                    <i class="bi bi-info-circle me-1"></i> Client-side estimate based on (Conducted / Scheduled &times; 100). Final score calculated by PBAS engine.
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="col-md-6">
-                            <label class="saas-form-label">Student Pass Percentage <span class="text-danger">*</span></label>
+                            <label class="saas-form-label" for="{{ form.pass_percentage.id_for_label }}">
+                                Student Pass Percentage <span class="text-danger">*</span>
+                            </label>
                             {{ form.pass_percentage }}
-                            <div class="saas-form-helper">Pass rate (0.0 to 100.0%)</div>
+                            <div class="saas-form-helper">Final examination pass rate percentage (0.00 to 100.00%)</div>
+                            {% if form.pass_percentage.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.pass_percentage.errors.0 }}</div>
+                            {% endif %}
                         </div>
+
                         <div class="col-md-6">
-                            <label class="saas-form-label">Student Feedback Rating <span class="text-danger">*</span></label>
+                            <label class="saas-form-label" for="{{ form.student_feedback_score.id_for_label }}">
+                                Student Feedback Score <span class="text-danger">*</span>
+                            </label>
                             {{ form.student_feedback_score }}
-                            <div class="saas-form-helper">Evaluation rating (0.00 to 5.00)</div>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="saas-form-label">Pedagogy Innovations &amp; ICT Tools</label>
-                            {{ form.innovative_teaching_methods }}
-                            <div class="saas-form-helper">Smart classrooms, simulation software, LMS modules used</div>
+                            <div class="saas-form-helper">Institutional student evaluation rating (0.00 to 5.00)</div>
+                            {% if form.student_feedback_score.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.student_feedback_score.errors.0 }}</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                <!-- 3. Innovative Teaching Methods -->
+                <div class="form-section-group mb-4">
+                    <div class="form-section-title pb-1 border-bottom mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-lightbulb text-primary"></i>
+                        <span class="fw-bold text-dark fs-6">3. Innovative Teaching Methods &amp; ICT Tools</span>
+                        <span class="text-muted extra-small fw-normal ms-auto">Pedagogy Enhancements</span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="saas-form-label" for="{{ form.innovative_teaching_methods.id_for_label }}">
+                                Pedagogical Innovations, LMS &amp; ICT Tools
+                            </label>
+                            {{ form.innovative_teaching_methods }}
+                            <div class="saas-form-helper">
+                                Detail active learning models, flipped classroom methods, simulation software, digital labs, Google Classroom / Moodle modules, or peer learning techniques applied.
+                            </div>
+                            {% if form.innovative_teaching_methods.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.innovative_teaching_methods.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Action Buttons -->
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-4">
                     <a href="{% url 'teaching_list' %}" class="btn-saas btn-saas-secondary">
-                        <i class="bi bi-arrow-left"></i> Cancel
+                        <i class="bi bi-arrow-left me-1"></i> Cancel
                     </a>
                     <button type="submit" class="btn-saas btn-saas-primary">
-                        <i class="bi bi-check2-circle"></i> Save Teaching Record
+                        <i class="bi bi-check2-circle me-1"></i> Save Teaching Record
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<!-- Client-Side Live Compliance Preview Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const scheduledInput = document.getElementById('id_scheduled_hours');
+    const conductedInput = document.getElementById('id_conducted_hours');
+    const badge = document.getElementById('liveComplianceBadge');
+
+    if (!scheduledInput || !conductedInput || !badge) return;
+
+    function updateCompliancePreview() {
+        const schedVal = scheduledInput.value.trim();
+        const condVal = conductedInput.value.trim();
+
+        if (schedVal === '' || condVal === '') {
+            badge.className = 'saas-badge saas-badge-neutral font-mono';
+            badge.textContent = '--% (Enter hours)';
+            return;
+        }
+
+        const sched = parseFloat(schedVal);
+        const cond = parseFloat(condVal);
+
+        if (isNaN(sched) || isNaN(cond)) {
+            badge.className = 'saas-badge saas-badge-neutral font-mono';
+            badge.textContent = '--% (Invalid input)';
+            return;
+        }
+
+        if (sched <= 0) {
+            badge.className = 'saas-badge saas-badge-rose font-mono';
+            badge.textContent = 'Scheduled hours must be > 0';
+            return;
+        }
+
+        if (cond < 0) {
+            badge.className = 'saas-badge saas-badge-rose font-mono';
+            badge.textContent = 'Conducted hours cannot be negative';
+            return;
+        }
+
+        const rate = (cond / sched) * 100;
+        const rateFormatted = rate.toFixed(1);
+
+        if (rate >= 90) {
+            badge.className = 'saas-badge saas-badge-green font-mono';
+            badge.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>${rateFormatted}% &bull; Optimal Delivery (&ge; 90%)`;
+        } else if (rate >= 75) {
+            badge.className = 'saas-badge saas-badge-amber font-mono';
+            badge.innerHTML = `<i class="bi bi-exclamation-circle-fill me-1"></i>${rateFormatted}% &bull; Satisfactory (&ge; 75%)`;
+        } else {
+            badge.className = 'saas-badge saas-badge-rose font-mono';
+            badge.innerHTML = `<i class="bi bi-x-circle-fill me-1"></i>${rateFormatted}% &bull; Below Target (&lt; 75%)`;
+        }
+    }
+
+    scheduledInput.addEventListener('input', updateCompliancePreview);
+    conductedInput.addEventListener('input', updateCompliancePreview);
+
+    // Initial run on page load (essential for pre-filled values on Edit form)
+    updateCompliancePreview();
+});
+</script>
 {% endblock %}

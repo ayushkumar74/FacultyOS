@@ -4,22 +4,32 @@
 
 {% block content %}
 <div class="container py-3" style="max-width: 860px;">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
-            <div class="saas-badge saas-badge-blue mb-1">Workshops &bull; Up to 15 Pts</div>
-            <h1 class="h5 fw-bold mb-0">{{ title }}</h1>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="saas-badge saas-badge-blue" style="background-color: #EFF6FF; color: #1E40AF; font-weight: 600;">
+                    Workshops &bull; Category 3 (Max 15 Pts)
+                </span>
+                {% if request.user.faculty_profile %}
+                    <span class="employee-id-pill font-mono" title="Faculty Employee ID">{{ request.user.faculty_profile.employee_id }}</span>
+                {% endif %}
+            </div>
+            <h1 class="h5 fw-bold mb-0 text-dark">{{ title }}</h1>
             <p class="text-muted extra-small mb-0">Record FDP, STTP, technical workshops, seminars, and training activities</p>
         </div>
         <a href="{% url 'workshop_list' %}" class="btn-saas btn-saas-secondary btn-saas-sm">
-            <i class="bi bi-arrow-left"></i> Back to Workshops
+            <i class="bi bi-arrow-left me-1"></i> Back to Workshops
         </a>
     </div>
 
-    <div class="saas-card">
+    <!-- Main Form Card -->
+    <div class="saas-card shadow-sm border">
         <div class="saas-card-body p-4">
-            <form method="POST" novalidate>
+            <form method="POST" novalidate id="workshopForm">
                 {% csrf_token %}
 
+                <!-- Form Validation Error Summary -->
                 {% if form.errors %}
                     <div class="alert alert-danger py-2 px-3 extra-small rounded-2 mb-4" role="alert">
                         <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Please correct the following errors:</div>
@@ -36,71 +46,225 @@
                     </div>
                 {% endif %}
 
-                <!-- Program Details -->
-                <div class="form-section-group">
-                    <div class="form-section-title"><i class="bi bi-award text-primary me-1"></i> Program Identification</div>
-                    <div class="form-section-desc">Session, training type, faculty role, and program title</div>
+                <!-- 1. Program Identification -->
+                <div class="form-section-group mb-4">
+                    <div class="form-section-title pb-1 border-bottom mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-award text-primary"></i>
+                        <span class="fw-bold text-dark fs-6">1. Program Identification</span>
+                        <span class="text-muted extra-small fw-normal ms-auto">Session, Title &amp; Host Institution</span>
+                    </div>
 
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="saas-form-label">Academic Year <span class="text-danger">*</span></label>
+                        <div class="col-md-4">
+                            <label class="saas-form-label" for="{{ form.academic_year.id_for_label }}">
+                                Academic Year <span class="text-danger">*</span>
+                            </label>
                             {{ form.academic_year }}
+                            <div class="saas-form-helper">Official appraisal academic session</div>
+                            {% if form.academic_year.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.academic_year.errors.0 }}</div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-6">
-                            <label class="saas-form-label">Program Type <span class="text-danger">*</span></label>
-                            {{ form.program_type }}
-                        </div>
-                        <div class="col-md-12">
-                            <label class="saas-form-label">Program / Workshop Title <span class="text-danger">*</span></label>
-                            {{ form.title }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="saas-form-label">Faculty Role <span class="text-danger">*</span></label>
-                            {{ form.role }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="saas-form-label">Organizing Institution / University <span class="text-danger">*</span></label>
+
+                        <div class="col-md-8">
+                            <label class="saas-form-label" for="{{ form.organizing_institution.id_for_label }}">
+                                Organizing Institution / Host University <span class="text-danger">*</span>
+                            </label>
                             {{ form.organizing_institution }}
+                            <div class="saas-form-helper">e.g. IIT Delhi, AICTE ATAL Academy, NIT Trichy</div>
+                            {% if form.organizing_institution.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.organizing_institution.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="saas-form-label" for="{{ form.title.id_for_label }}">
+                                Program / Workshop Title <span class="text-danger">*</span>
+                            </label>
+                            {{ form.title }}
+                            <div class="saas-form-helper">Complete approved training title or theme</div>
+                            {% if form.title.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.title.errors.0 }}</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
 
-                <!-- Schedule & Verification -->
-                <div class="form-section-group">
-                    <div class="form-section-title"><i class="bi bi-calendar-event text-primary me-1"></i> Duration &amp; Certification</div>
-                    <div class="form-section-desc">Dates, total days, and certificate verification link</div>
+                <!-- 2. Faculty Role & Statutory Weighting -->
+                <div class="form-section-group mb-4">
+                    <div class="form-section-title pb-1 border-bottom mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-person-badge text-primary"></i>
+                        <span class="fw-bold text-dark fs-6">2. Faculty Role &amp; Statutory Weighting</span>
+                        <span class="text-muted extra-small fw-normal ms-auto">Program Category &amp; Faculty Capacity</span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="saas-form-label" for="{{ form.program_type.id_for_label }}">
+                                Program Type <span class="text-danger">*</span>
+                            </label>
+                            {{ form.program_type }}
+                            <div class="saas-form-helper">FDP / STTP / Orientation (5.0 pts), Workshop (3.0 pts), Seminar (2.0 pts)</div>
+                            {% if form.program_type.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.program_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="saas-form-label" for="{{ form.role.id_for_label }}">
+                                Faculty Role <span class="text-danger">*</span>
+                            </label>
+                            {{ form.role }}
+                            <div class="saas-form-helper">Resource Person / Coordinator (+2.0 bonus pts), Participant (+0.0)</div>
+                            {% if form.role.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.role.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Live Category 3 PBAS Credit Preview Widget -->
+                        <div class="col-12">
+                            <div class="p-3 rounded-2 border d-flex align-items-center justify-content-between flex-wrap gap-2" style="background-color: var(--surface-subtle); border-color: var(--border-default) !important;">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <i class="bi bi-calculator-fill text-primary fs-6"></i>
+                                        <span class="extra-small fw-bold text-dark text-uppercase tracking-wider">Estimated Category 3 Credit:</span>
+                                        <span id="liveCreditBadge" class="saas-badge saas-badge-blue font-mono fw-bold">-- pts</span>
+                                    </div>
+                                    <div id="liveCreditBreakdown" class="extra-small text-muted font-mono">
+                                        Select program type and faculty role to preview points
+                                    </div>
+                                </div>
+                                <div class="extra-small text-muted fst-italic text-end" style="max-width: 290px; line-height: 1.35;">
+                                    <i class="bi bi-info-circle me-1"></i> Statutory formula: Base + Role Bonus. Cumulative Category 3 score is capped at 15.0 points.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Schedule, Duration & Certification -->
+                <div class="form-section-group mb-4">
+                    <div class="form-section-title pb-1 border-bottom mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-calendar-check text-primary"></i>
+                        <span class="fw-bold text-dark fs-6">3. Schedule, Duration &amp; Certification</span>
+                        <span class="text-muted extra-small fw-normal ms-auto">Timeline &amp; Verification Evidence</span>
+                    </div>
 
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="saas-form-label">Start Date <span class="text-danger">*</span></label>
+                            <label class="saas-form-label" for="{{ form.start_date.id_for_label }}">
+                                Start Date <span class="text-danger">*</span>
+                            </label>
                             {{ form.start_date }}
+                            <div class="saas-form-helper">Program commencement date</div>
+                            {% if form.start_date.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.start_date.errors.0 }}</div>
+                            {% endif %}
                         </div>
+
                         <div class="col-md-4">
-                            <label class="saas-form-label">End Date <span class="text-danger">*</span></label>
+                            <label class="saas-form-label" for="{{ form.end_date.id_for_label }}">
+                                End Date <span class="text-danger">*</span>
+                            </label>
                             {{ form.end_date }}
+                            <div class="saas-form-helper">Program completion date</div>
+                            {% if form.end_date.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.end_date.errors.0 }}</div>
+                            {% endif %}
                         </div>
+
                         <div class="col-md-4">
-                            <label class="saas-form-label">Duration (Days) <span class="text-danger">*</span></label>
+                            <label class="saas-form-label" for="{{ form.duration_days.id_for_label }}">
+                                Total Duration (Days) <span class="text-danger">*</span>
+                            </label>
                             {{ form.duration_days }}
+                            <div class="saas-form-helper">Total active training days</div>
+                            {% if form.duration_days.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.duration_days.errors.0 }}</div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-12">
-                            <label class="saas-form-label">Certificate Verification URL</label>
+
+                        <div class="col-12">
+                            <label class="saas-form-label" for="{{ form.certificate_link.id_for_label }}">
+                                Certificate / Document Verification Link
+                            </label>
                             {{ form.certificate_link }}
-                            <div class="saas-form-helper">Google Drive link or institutional repository URL for audit verification</div>
+                            <div class="saas-form-helper">
+                                <i class="bi bi-shield-check me-1"></i> Optional Google Drive or repository link for institutional appraisal audit
+                            </div>
+                            {% if form.certificate_link.errors %}
+                                <div class="text-danger extra-small mt-1">{{ form.certificate_link.errors.0 }}</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                <!-- Form Footer Actions -->
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-4 flex-wrap gap-2">
                     <a href="{% url 'workshop_list' %}" class="btn-saas btn-saas-secondary">
-                        <i class="bi bi-arrow-left"></i> Cancel
+                        <i class="bi bi-arrow-left me-1"></i> Cancel
                     </a>
-                    <button type="submit" class="btn-saas btn-saas-primary">
-                        <i class="bi bi-check2-circle"></i> Save Workshop Record
+                    <button type="submit" class="btn-saas btn-saas-primary px-4">
+                        <i class="bi bi-check2-circle me-1"></i> Save Workshop Record
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const progTypeSelect = document.getElementById('id_program_type');
+    const roleSelect = document.getElementById('id_role');
+    const creditBadge = document.getElementById('liveCreditBadge');
+    const creditBreakdown = document.getElementById('liveCreditBreakdown');
+
+    if (!progTypeSelect || !roleSelect || !creditBadge || !creditBreakdown) return;
+
+    // Statutory base rates mirroring appraisal/scoring.py
+    const WORKSHOP_BASE_RATES = {
+        'FDP': { points: 5.0, label: 'Faculty Development Program (FDP)' },
+        'STTP': { points: 5.0, label: 'Short Term Training Program (STTP)' },
+        'ORIENTATION': { points: 5.0, label: 'Orientation / Refresher Course' },
+        'WORKSHOP': { points: 3.0, label: 'Hands-on Technical Workshop' },
+        'SEMINAR': { points: 2.0, label: 'Seminar / Webinar' }
+    };
+
+    // Statutory role bonuses
+    const ROLE_BONUSES = {
+        'Resource Person': { bonus: 2.0, label: 'Resource Person (+2.0 bonus)' },
+        'Coordinator': { bonus: 2.0, label: 'Coordinator (+2.0 bonus)' },
+        'Participant': { bonus: 0.0, label: 'Participant (+0.0)' }
+    };
+
+    function updateCreditPreview() {
+        const typeVal = progTypeSelect.value;
+        const roleVal = roleSelect.value;
+
+        if (!typeVal || !roleVal || !WORKSHOP_BASE_RATES[typeVal] || !ROLE_BONUSES[roleVal]) {
+            creditBadge.className = 'saas-badge saas-badge-neutral font-mono';
+            creditBadge.textContent = '-- pts';
+            creditBreakdown.textContent = 'Select program type and faculty role to preview points';
+            return;
+        }
+
+        const typeInfo = WORKSHOP_BASE_RATES[typeVal];
+        const roleInfo = ROLE_BONUSES[roleVal];
+
+        const totalPoints = (typeInfo.points + roleInfo.bonus).toFixed(1);
+
+        creditBadge.className = 'saas-badge saas-badge-blue font-mono fw-bold fs-6';
+        creditBadge.textContent = `+${totalPoints} pts`;
+
+        creditBreakdown.innerHTML = `<span class="text-dark fw-semibold">${typeInfo.label}</span> (${typeInfo.points.toFixed(1)} base) + <span class="text-dark fw-semibold">${roleInfo.label}</span> = <strong class="text-primary">${totalPoints} pts</strong>`;
+    }
+
+    progTypeSelect.addEventListener('change', updateCreditPreview);
+    roleSelect.addEventListener('change', updateCreditPreview);
+
+    // Initial run on page load (essential for pre-filled values on Edit form)
+    updateCreditPreview();
+});
+</script>
 {% endblock %}
